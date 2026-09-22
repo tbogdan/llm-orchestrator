@@ -25,7 +25,11 @@ merely worse — it makes it invalid.
    and agent roles. Classify each as `installed`, `loaded`, `callable`, `denied` or `unknown`.
    Disk presence never proves callability. Never invent a server, tool or skill name.
 4. **Emit the pre-evaluation JSON** — the full object in [protocol.md](protocol.md). No dispatch,
-   no edit, no shell before it exists.
+   no edit, no shell before it exists. Then open the run:
+   `node <this skill's directory>/bin/llm-orchestrator.mjs run start --type <TASK_TYPE> --shards <n>`
+   (`llm-orchestrator run start ...` when installed from npm; the PlanShard count from step 5 may be
+   added once known). A task too small for the flow is declared, not skipped:
+   `... run start --trivial "<reason>"`.
 5. **Build the flow with PlanShards** — phases, parallel groups, dependencies, gates, per-shard
    ownership and `max_iterations`. See [dispatch](policies/dispatch.md).
 6. **Route every shard, then dispatch** — model and thinking level are chosen **per shard, at
@@ -40,7 +44,7 @@ merely worse — it makes it invalid.
 8. **Verify** — [verification](policies/verification.md). Evidence before assertions, always.
 9. **Persist state** — [state](policies/state.md). Drawers, not transcripts.
 10. **Clean up** — [cleanup](policies/cleanup.md). A flow is not complete while cleanup is pending
-    or blocked.
+    or blocked. Close the run last: `... run close` (same CLI as step 4).
 
 ## Mandatory core tools
 

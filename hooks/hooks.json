@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/llm-orchestrator.mjs\" gate 2>/dev/null || true # orchestrate-core:flow",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/llm-orchestrator.mjs\" gate 2>/dev/null || true # orchestrate-core:flow",
+            "timeout": 3
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/llm-orchestrator.mjs\" gate 2>/dev/null || true # orchestrate-core:flow",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

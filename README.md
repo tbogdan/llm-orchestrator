@@ -330,6 +330,42 @@ Generic rules live in `orchestrate-core`; this section only adds or tightens.
 - **OpenCode** installs `.opencode/command(s)/*.md`, `.opencode/agent/*.md`, skills under `~/.config/opencode/skills`; subagents dispatch via the task tool. Sequential Thinking's permission key is `sequentialthinking_sequentialthinking`.
 - **Kilo** installs `.kilo/command(s)/*.md`, `.kilo/agent/*.md`, skills under `~/.kilo/skills`/`.kilo/skills`; Agent Manager worktrees live under `.kilo/worktrees/`. Same Sequential Thinking permission key as OpenCode.
 
+### Flow adherence
+
+Agents tend to skip a mandatory skill out of habit — they see a quick lookup, reach for `grep` or
+`ssh`, and never classify or plan. The installer adds small hooks that steer instead of relying on
+more instructions:
+
+- When the main agent starts working on a prompt with no orchestrate-core run open, the model gets
+  one sentence (`additionalContext`, invisible in your conversation) pointing it back at the flow:
+  classify, then `llm-orchestrator run start --type <TYPE>`, or declare the task trivial with
+  `llm-orchestrator run start --trivial "<reason>"`. Once per prompt, never for subagents, never for
+  reading the orchestration instructions.
+- **Nothing is ever blocked.** The handler (`llm-orchestrator gate`) has no deny path, fails open on
+  any error, and is wrapped so a missing runtime is a silent no-op.
+- Each project keeps a ledger in `.orchestrator-run/` (self-gitignored): ids, task types, counts
+  and timestamps only — never prompts, tool inputs or file contents. `doctor` reports it under
+  `flow.adherence`: runs, trivial declarations, tasks that skipped the flow, runs started outside
+  it, runs opened without a PlanShard count, runs that planned several shards but started no
+  subagents, and runs still open.
+- Once the entrypoint is loaded, read-only discovery (reading files, `grep`, `git status`, tool
+  version checks) before `run start` is SKILL.md steps 2–3, not a deviation. An edit, a write, a
+  dispatch or any other shell command before the run is.
+- Only projects that use orchestrate-core are steered — an `AGENTS.md`/`CLAUDE.md` naming the
+  entrypoint (every CLI install writes one) or an existing ledger. The Claude Code plugin's hooks
+  therefore stay silent in unrelated projects.
+
+| Harness | Where the hooks live |
+| --- | --- |
+| Claude Code (plugin) | the plugin's own `hooks/hooks.json` — active on `/plugin install` |
+| Claude Code (CLI install) | marked entries merged into `.claude/settings.json`; the rest of the file is untouched |
+| Codex | marked entries in `.codex/hooks.json` — trust them once in `/hooks` |
+| OpenCode / Kilo | `.opencode/plugins/orchestrate-flow.js` / `.kilo/plugin/orchestrate-flow.js` (auto-loaded by each); the reminder is appended to the tool's output, since these harnesses have no pre-tool context channel |
+
+`install --no-flow-hooks` skips them (and withdraws hooks an earlier install wrote); the choice is
+remembered until `--flow-hooks` turns them back on. `uninstall` removes exactly the marked entries
+and restores the rest of each file as it was.
+
 ### Uninstall
 
 ```sh

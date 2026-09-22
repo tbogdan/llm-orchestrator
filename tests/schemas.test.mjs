@@ -10,7 +10,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, readFile, cp } from 'node:fs/promises';
+import { mkdtemp, readFile, cp, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { validate } from './schema-validator.mjs';
 import { discoverProject } from '../lib/project-discovery.mjs';
 import { discoverTools } from '../lib/tool-discovery.mjs';
+import { handleHook } from '../lib/flow-gate.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(root + path, 'utf8'));
@@ -27,7 +28,7 @@ const schema = (name) => readJson(`schemas/${name}.schema.json`);
 test('every schema declares an $id that names this package', () => {
   const names = [
     'agent-roles', 'capability-contract', 'installation-manifest',
-    'project-profile', 'routing-matrix', 'tool-inventory', 'top-models',
+    'project-profile', 'routing-matrix', 'tool-inventory', 'top-models', 'flow-ledger',
   ];
   for (const name of names) {
     const id = schema(name).$id;
@@ -104,4 +105,25 @@ test('a real installation manifest validates against the installation-manifest s
     const manifest = JSON.parse(await readFile(path, 'utf8'));
     assert.deepEqual(validate(schema('installation-manifest'), manifest), [], `${path} does not match its schema`);
   }
+});
+
+test('a real flow ledger — session file and history lines — validates against flow-ledger', async () => {
+  const project = await mkdtemp(join(tmpdir(), 'llm-orchestrator-ledger-'));
+  await writeFile(join(project, 'AGENTS.md'), 'uses orchestrate-core\n');
+  const ledger = schema('flow-ledger');
+  const send = (payload) => handleHook({ payload: { session_id: 'sess-1', ...payload }, project });
+  await send({ hook_event_name: 'UserPromptSubmit', prompt_id: 'p1' });
+  await send({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'grep x' }, tool_use_id: 't1' });
+  await send({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'llm-orchestrator run start --type BUG_FIX --shards 2' }, tool_use_id: 't2' });
+  await send({ hook_event_name: 'SubagentStart', agent_id: 'a1' });
+  const session = JSON.parse(await readFile(join(project, '.orchestrator-run', 'sessions', 'sess-1.json'), 'utf8'));
+  assert.deepEqual(validate({ ...ledger.$defs.session, $defs: ledger.$defs }, session), []);
+  assert.deepEqual(validate(ledger.$defs.run, session.run), []);
+  await send({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'llm-orchestrator run close' }, tool_use_id: 't3' });
+  await send({ hook_event_name: 'UserPromptSubmit', prompt_id: 'p2' });
+  await send({ hook_event_name: 'PreToolUse', tool_name: 'Edit', tool_input: { file_path: '/x' }, tool_use_id: 't4' });
+  await send({ hook_event_name: 'UserPromptSubmit', prompt_id: 'p3' });
+  const lines = (await readFile(join(project, '.orchestrator-run', 'history.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
+  assert.equal(lines.length, 2);
+  for (const line of lines) assert.deepEqual(validate(ledger.$defs.historyLine, line), []);
 });

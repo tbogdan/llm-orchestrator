@@ -331,7 +331,9 @@ test('coherence 9: every CLI flag in README exists in a usage string, and vice v
   const unified = read('bin/llm-orchestrator.mjs');
   const modelsDiscover = read('bin/discover-models.mjs');
   const modelsReport = read('bin/model-thinking-report.mjs');
-  const usageText = `${cliOptions}\n${routeUsage}\n${attribution}\n${unified}\n${modelsDiscover}\n${modelsReport}`;
+  const runUsage = read('bin/run.mjs');
+  const gateUsage = read('bin/gate.mjs');
+  const usageText = `${cliOptions}\n${routeUsage}\n${attribution}\n${unified}\n${modelsDiscover}\n${modelsReport}\n${runUsage}\n${gateUsage}`;
 
   const readmeFlags = new Set([...readme.matchAll(/(?<![\w-])--[a-z][a-z0-9-]+/g)].map((match) => match[0]));
   const ignored = new Set(['--test', '--pure', '--no-data']);
@@ -352,7 +354,7 @@ test('coherence 9: every CLI flag in README exists in a usage string, and vice v
   }
 
   const { stdout } = await execFileAsync(process.execPath, [root + 'bin/llm-orchestrator.mjs', '--help']);
-  for (const subcommand of ['install', 'uninstall', 'doctor', 'render', 'route', 'models', 'check', 'init']) {
+  for (const subcommand of ['install', 'uninstall', 'doctor', 'render', 'route', 'models', 'run', 'gate', 'check', 'init']) {
     assert.ok(stdout.includes(subcommand), `--help does not list ${subcommand}`);
   }
 });

@@ -33,7 +33,12 @@ can target it.
 
 ## Pre-Evaluation (MANDATORY for every request, auto, <30s)
 
-No dispatch, edit or shell command may precede this object.
+No dispatch, edit or shell command may precede this object. Opening the run
+(`llm-orchestrator run start --type <TASK_TYPE>`) follows it immediately.
+
+**Trivial tasks.** A one-line, obviously scoped change (a typo, a version bump) may skip the full
+flow, but only by declaring it: `llm-orchestrator run start --trivial "<reason>"`. The
+declaration and its reason are recorded; an undeclared skip is recorded as a skipped flow.
 
 ```json
 {

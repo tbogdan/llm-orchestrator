@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-const HELP = `llm-orchestrator <install|uninstall|doctor|render|route|models|check|init|help> [options]
+const HELP = `llm-orchestrator <install|uninstall|doctor|render|route|models|run|gate|check|init|help> [options]
 
   install      Install the orchestration core + harness adapters into a project.
   uninstall    Remove only the files this package installed.
@@ -14,6 +14,8 @@ const HELP = `llm-orchestrator <install|uninstall|doctor|render|route|models|che
   render       Render an adapter's file list without touching disk.
   route        Cost-aware model/tier routing (forwarded to bin/route.mjs).
   models       Model availability evidence: "models discover" / "models report".
+  run          Open or close an orchestrate-core run: "run start" / "run close".
+  gate         Flow-adherence hook handler (reads a hook payload on stdin; never blocks).
   check        Verify every package-owned file carries the attribution marker.
   init         First-run wizard: dry-run plan + mandatory-tool + bindings check.
   help         Show this message.
@@ -124,6 +126,12 @@ async function main() {
       return;
     case 'models':
       await runModelsCommand(rest);
+      return;
+    case 'run':
+      await forward('run.mjs', rest);
+      return;
+    case 'gate':
+      await forward('gate.mjs', rest);
       return;
     case 'init':
       await runInitCommand(rest);

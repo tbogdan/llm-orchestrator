@@ -15,7 +15,7 @@ export function defaultStateRoot() {
 }
 
 export function usage(command) {
-  return `Usage: ${command} --project ROOT --harness codex[,claude,opencode,kilo] [--package-root SOURCE] [--state-root DIR] [--skills-root DIR] [--with-agents] [--codex-prompts-root DIR] [--link-claude] [--apply]`;
+  return `Usage: ${command} --project ROOT --harness codex[,claude,opencode,kilo] [--package-root SOURCE] [--state-root DIR] [--skills-root DIR] [--with-agents] [--codex-prompts-root DIR] [--link-claude] [--no-flow-hooks | --flow-hooks] [--apply]`;
 }
 
 const VALUED_OPTIONS = ['--project', '--harness', '--package-root', '--state-root', '--skills-root', '--codex-prompts-root'];
@@ -27,6 +27,8 @@ export function parseOptions(argv, command) {
     if (argument === '--apply') values.apply = true;
     else if (argument === '--with-agents') values.with_agents = true;
     else if (argument === '--link-claude') values.link_claude = true;
+    else if (argument === '--no-flow-hooks') values.flow_hooks = false;
+    else if (argument === '--flow-hooks') values.flow_hooks = true;
     else if (argument === '--help' || argument === '-h') values.help = true;
     else if (VALUED_OPTIONS.includes(argument)) {
       const value = argv[index + 1];
@@ -52,6 +54,8 @@ export function parseOptions(argv, command) {
     skillsRootDefaulted: !values.skills_root,
     withAgents: values.with_agents === true,
     linkClaude: values.link_claude === true,
+    // undefined keeps whatever the project's last install chose (default: on).
+    flowHooks: values.flow_hooks,
     codexPromptsRoot: values.codex_prompts_root ?? (harnesses.includes('codex') ? resolve(homedir(), '.codex', 'prompts') : undefined),
     apply: values.apply === true,
   };

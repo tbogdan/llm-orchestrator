@@ -47,7 +47,12 @@ try {
     const bindings = bindingsPresent
       ? {present: true}
       : {present: false, section: BINDINGS_HEADING, next: `${cliInvocation()} init --project ${options.project} --apply`};
-    process.stdout.write(`${JSON.stringify({...result, files: result.files?.map(({absolutePath, content, ...file}) => file), ...(claudeSymlink ? {claudeSymlink} : {}), bindings}, null, 2)}\n`);
+    const flowHooksOn = result.manifest?.flow_hooks !== false;
+    const flowHooks = {
+      enabled: flowHooksOn,
+      ...(flowHooksOn && options.harnesses.includes('codex') ? {note: 'Codex runs new hooks only after they are trusted once in /hooks'} : {}),
+    };
+    process.stdout.write(`${JSON.stringify({...result, files: result.files?.map(({absolutePath, content, ...file}) => file), ...(claudeSymlink ? {claudeSymlink} : {}), bindings, flow_hooks: flowHooks}, null, 2)}\n`);
     if (result.conflicts?.length) process.exitCode = 2;
   }
 } catch (error) {

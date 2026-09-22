@@ -17,7 +17,7 @@ function run(args) {
 test('no subcommand prints help and exits 0', () => {
   const { status, stdout } = run([]);
   assert.equal(status, 0);
-  assert.match(stdout, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|check\|init\|help>/);
+  assert.match(stdout, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|run\|gate\|check\|init\|help>/);
 });
 
 for (const flag of ['help', '-h', '--help']) {
@@ -32,7 +32,7 @@ test('an unknown subcommand exits 1 and prints the help', () => {
   const { status, stderr } = run(['not-a-real-subcommand']);
   assert.equal(status, 1);
   assert.match(stderr, /Unknown subcommand: not-a-real-subcommand/);
-  assert.match(stderr, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|check\|init\|help>/);
+  assert.match(stderr, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|run\|gate\|check\|init\|help>/);
 });
 
 test('check passes against this package\'s own tree', () => {
@@ -84,7 +84,7 @@ test('next-command hints match how the CLI was invoked', async () => {
 });
 
 test('every subcommand answers --help on stdout with exit 0', () => {
-  for (const subcommand of ['install', 'uninstall', 'doctor', 'render', 'route', 'check', 'init', 'models']) {
+  for (const subcommand of ['install', 'uninstall', 'doctor', 'render', 'route', 'check', 'init', 'models', 'run', 'gate']) {
     const result = run([subcommand, '--help']);
     assert.equal(result.status, 0, `${subcommand} --help exited ${result.status}`);
     assert.ok(result.stdout.trim().length > 0, `${subcommand} --help wrote nothing to stdout`);

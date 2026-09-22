@@ -89,7 +89,8 @@
               "bridge",
               "native-command",
               "codex-prompt",
-              "agent-file"
+              "agent-file",
+              "flow-plugin"
             ]
           }
         }
@@ -144,6 +145,25 @@
           "created_file": {
             "type": "boolean"
           }
+        }
+      }
+    },
+    "flow_hooks": {
+      "type": "boolean",
+      "description": "Whether flow-adherence hooks are installed; a later install without --flow-hooks / --no-flow-hooks keeps this choice."
+    },
+    "json_entries": {
+      "type": "array",
+      "description": "Flow-hook groups merged into a user-owned hooks JSON file (.claude/settings.json, .codex/hooks.json). Only the marked groups are owned; the rest of the file is the user's.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scope", "path", "hash", "created_file"],
+        "properties": {
+          "scope": { "const": "project" },
+          "path": { "type": "string", "minLength": 1 },
+          "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "created_file": { "type": "boolean" }
         }
       }
     }

@@ -1,0 +1,60 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/flow-ledger.schema.json",
+  "title": "Flow adherence ledger (.orchestrator-run/)",
+  "description": "Per-session state and closed-run history written by `llm-orchestrator gate`. Ids, task types, counts and timestamps only — never prompts, tool inputs or file contents.",
+  "$defs": {
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow"],
+      "properties": {
+        "task_id": { "type": "string", "minLength": 1 },
+        "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
+        "trivial": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "opened_at": { "type": "number" },
+        "planned_shards": { "type": ["integer", "null"], "minimum": 1 },
+        "subagents_started": { "type": "integer", "minimum": 0 },
+        "started_outside_flow": { "type": "boolean" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "session", "run", "prompt_started_at", "nudged", "worked_without_run", "subagents_without_run", "entrypoint_loaded", "seen"],
+      "properties": {
+        "version": { "const": 1 },
+        "session": { "type": "string", "minLength": 1 },
+        "run": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/run" }] },
+        "prompt_started_at": { "type": ["number", "null"] },
+        "nudged": { "type": "boolean" },
+        "worked_without_run": { "type": "boolean" },
+        "subagents_without_run": { "type": "integer", "minimum": 0 },
+        "entrypoint_loaded": { "type": "boolean" },
+        "seen": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "historyLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "closed_by"],
+      "properties": {
+        "session": { "type": "string", "minLength": 1 },
+        "task_id": { "type": ["string", "null"] },
+        "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
+        "trivial": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "opened_at": { "type": ["string", "null"] },
+        "closed_at": { "type": "string" },
+        "duration_s": { "type": ["integer", "null"], "minimum": 0 },
+        "planned_shards": { "type": ["integer", "null"], "minimum": 1 },
+        "subagents_started": { "type": "integer", "minimum": 0 },
+        "started_outside_flow": { "type": "boolean" },
+        "skipped_flow": { "type": "boolean" },
+        "closed_by": { "enum": ["run_close", "next_prompt", "succession"] }
+      }
+    }
+  }
+}
