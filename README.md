@@ -58,6 +58,50 @@ node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness>
 
 `init` is read-only: it proposes a `--harness` from what it finds in `/path/to/app` (or your home directory), shows the install plan it *would* run, and reports which of the [8 mandatory core tools](#the-8-mandatory-core-tools) are missing with the exact install command for each — nothing is written unless you pass `--apply` (which only appends the `AGENTS.md` bindings template if that section is missing; it never touches the install itself). Everything else in this README explains the same commands in more detail, per harness.
 
+## Let an agent install it for you
+
+Paste the block below into any capable coding agent (Claude Code, Codex, OpenCode, Kilo). It
+installs the orchestrator itself without asking, then **stops and asks you once** before touching
+anything else — installing third-party tools on someone's machine is not a decision an agent gets to
+make silently.
+
+````text
+Install llm-orchestrator in this project, then report back.
+
+STEP 1 — install the orchestrator (do this without asking):
+  - On Claude Code: run `/plugin marketplace add tbogdan/llm-orchestrator` then
+    `/plugin install llm-orchestrator@tbogdan`.
+  - On any other harness, or if you also want the project files (commands, agent, AGENTS.md
+    bindings): run `npx llm-orchestrator install --project . --harness <harness> --apply`,
+    where <harness> is one of codex | claude | opencode | kilo.
+
+STEP 2 — find the gaps (read-only, writes nothing):
+  Run `npx llm-orchestrator init --project .`
+  It prints each of the 8 mandatory core tools as [present] or [missing], with the exact
+  install command for each missing one, and whether AGENTS.md has the orchestration
+  bindings section.
+
+STEP 3 — ASK ME BEFORE INSTALLING ANYTHING ELSE. Do not skip this step.
+  Use your harness's native question mechanism (AskUserQuestion on Claude Code,
+  request_user_input on Codex, question on OpenCode, ask_followup_question on Kilo).
+  Ask once, batched, and include in the question:
+    - the list of missing tools,
+    - the exact command you would run for each,
+    - that `brew install rtk` needs Homebrew and that the `/plugin` lines only work on
+      Claude Code,
+    - that declining is fine: the core still runs, in declared degraded mode.
+  Then install exactly the ones I approve, and nothing I did not approve.
+
+STEP 4 — verify and report:
+  Run `npx llm-orchestrator doctor --project . --harness <harness>` and show me the output.
+  Tell me plainly which tools are still missing and which gates are therefore degraded.
+  Do not claim the install succeeded without showing the doctor output.
+````
+
+The same shape works as a standing instruction in `AGENTS.md`/`CLAUDE.md` if you want new sessions
+to self-install. Keep step 3 intact if you do — an agent that installs MCP servers and Homebrew
+formulae unprompted is a worse problem than a missing gate.
+
 ## Why
 
 Every harness reinvents "which tool for which job," and every project's AGENTS.md/CLAUDE.md ends up repeating (and drifting from) the same rules. `llm-orchestrator` centralizes that decision in a small set of portable JSON registries plus a capability resolver, and renders the result into whatever native format your harness understands — commands, agents, skills, prompts.
@@ -92,6 +136,33 @@ These apply to every task, everywhere, regardless of harness (see `registries/co
 | 8 | `research.retrieve` | exa (exa-search) | External/current facts, vendor behavior not in local docs, research-type tasks, and any claim about versions/prices/APIs need retrieved sources, not recalled ones. |
 
 Four more gates are equally mandatory, at their own trigger rather than on every turn: `verification.checks` (verification-before-completion, before any completion claim), `skill.check` (before any action, check whether a skill already covers it), `tool.discovery` (search before declaring a tool absent), and `user.native_question` (every question to the user goes through the harness's native mechanism, batched into one question — `AskUserQuestion` on Claude Code, `request_user_input` / `update_plan` on Codex, `question` on OpenCode, `ask_followup_question` on Kilo; see `policies/questions.md`).
+
+#### Installing the core tools
+
+`llm-orchestrator init` reports which of these are missing and prints the matching command. The
+routes below are the ones it prints — each was checked against the published source, because three
+of them are not what the obvious guess would be: `rtk` on crates.io is an unrelated "Rust Type Kit",
+and `mempalace-mcp` and `superpowers` are binaries their plugin ships rather than npm packages you
+can `npx`.
+
+| Capability | Tool | Install |
+|---|---|---|
+| `orchestration.bootstrap`, `skill.check`, `verification.checks` | using-superpowers | `/plugin marketplace add anthropics/claude-plugins-official` then `/plugin install superpowers@claude-plugins-official` |
+| `memory.recall`, `memory.checkpoint` | mempalace | `/plugin marketplace add MemPalace/mempalace` then `/plugin install mempalace@mempalace` |
+| `reasoning.checkpoints` | sequential-thinking | `claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking` |
+| `communication.concise` | caveman | `/plugin marketplace add JuliusBrussee/caveman` then `/plugin install caveman@caveman` |
+| `shell.rtk` | rtk | `brew install rtk` (Homebrew core; **not** `cargo install rtk`) |
+| `docs.current` | context7 | `claude mcp add context7 -- npx -y @upstash/context7-mcp` |
+| `research.retrieve` | exa | `claude mcp add exa -- npx -y exa-mcp-server` |
+| `tool.discovery` | harness-native tool search | built in, nothing to install |
+
+The `/plugin ...` lines are Claude Code commands, typed in a session. The `claude mcp add ...` lines
+are shell commands; on Codex, OpenCode or Kilo, register the same MCP server through that harness's
+own config instead — the server package and arguments are identical.
+
+Every one of these is optional in the sense that the core still runs without it — but it then runs
+in **declared degraded mode**, and every plan and report says so. That is the design, not a
+workaround.
 
 The eight rows above are `registries/core-profile.json` orders 1–8, in that order. The same eight, in the same order, appear in `SKILL.md`, `policies/capabilities.md` and the `task` command checklist, and `lib/first-run.mjs` checks exactly these for presence — `tests/coherence.test.mjs` fails if any of those six lists drifts.
 

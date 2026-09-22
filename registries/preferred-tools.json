@@ -14,7 +14,7 @@
       "display_name": "MemPalace",
       "recommendation_kind": "product",
       "installable": true,
-      "install": "claude mcp add mempalace -- npx -y mempalace-mcp"
+      "install": "/plugin marketplace add MemPalace/mempalace && /plugin install mempalace@mempalace"
     },
     {
       "id": "native-memory",
@@ -91,7 +91,7 @@
       "display_name": "Verification before completion",
       "recommendation_kind": "product",
       "installable": true,
-      "install": "llm-orchestrator install --with-skill verification-before-completion"
+      "install": "/plugin marketplace add anthropics/claude-plugins-official && /plugin install superpowers@claude-plugins-official"
     },
     {
       "id": "production-telemetry-collector",
@@ -269,7 +269,7 @@
       "display_name": "Caveman",
       "recommendation_kind": "product",
       "installable": true,
-      "install": "llm-orchestrator install --with-skill caveman"
+      "install": "/plugin marketplace add JuliusBrussee/caveman && /plugin install caveman@caveman"
     },
     {
       "id": "native-concise-policy",
@@ -301,7 +301,7 @@
       "display_name": "Superpowers",
       "recommendation_kind": "product",
       "installable": true,
-      "install": "npx -y superpowers install"
+      "install": "/plugin marketplace add anthropics/claude-plugins-official && /plugin install superpowers@claude-plugins-official"
     },
     {
       "id": "native-workflow-selection",
@@ -329,7 +329,7 @@
       "display_name": "RTK",
       "recommendation_kind": "product",
       "installable": true,
-      "install": "cargo install rtk"
+      "install": "brew install rtk"
     },
     {
       "id": "native-shell-wrapper",
