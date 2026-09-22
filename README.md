@@ -1,6 +1,14 @@
 <!-- llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving -->
 # llm-orchestrator
 
+## License
+
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Use, copy, adapt and redistribute freely, including commercially, as long as you credit **Bogdan-Gabriel Torcescu** (https://www.linkedin.com/in/bogdantorcescu/), link the license, note your changes and keep the embedded attribution markers. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Copyright (c) 2026 Bogdan-Gabriel Torcescu — https://www.linkedin.com/in/bogdantorcescu/
+
+---
+
 You write one line. The agent plans the work, splits it across parallel subagents, writes their
 prompts, runs them, reviews the result, proves it works, and stops. You are not in the loop for any
 of the steps in between.
@@ -444,9 +452,3 @@ Every file this package owns (registries, schemas, lib, bin, adapters, tests, an
 - JSON: `"_attribution"` as the first key of the root object.
 
 Keep the credit line when copying or deriving from this project.
-
-## License
-
-[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Use, copy, adapt and redistribute freely, including commercially, as long as you credit **Bogdan-Gabriel Torcescu** (https://www.linkedin.com/in/bogdantorcescu/), link the license, note your changes and keep the embedded attribution markers. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
-Copyright (c) 2026 Bogdan-Gabriel Torcescu — https://www.linkedin.com/in/bogdantorcescu/
