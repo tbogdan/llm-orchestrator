@@ -1,7 +1,7 @@
 {
   "name": "llm-orchestrator",
   "version": "1.0.0",
-  "description": "Portable, cross-harness mandatory orchestration core (Codex, Claude Code, OpenCode, Kilo) — capability resolution, dispatch contracts, and harness adapters.",
+  "description": "Write rtk /task once — it plans the work, shards it across parallel subagents, gates every phase and verifies before claiming done. Claude Code, Codex, OpenCode, Kilo.",
   "type": "module",
   "engines": {
     "node": ">=22"

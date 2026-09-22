@@ -8,7 +8,7 @@
     {
       "name": "llm-orchestrator",
       "source": "./",
-      "description": "Portable, cross-harness mandatory orchestration core — capability resolution, dispatch contracts, cost-aware routing, gates and verification."
+      "description": "Write rtk /task once — it plans the work, shards it across parallel subagents, gates every phase and verifies before claiming done. Claude Code, Codex, OpenCode, Kilo."
     }
   ]
 }

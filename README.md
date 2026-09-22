@@ -1,7 +1,44 @@
 <!-- llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving -->
 # llm-orchestrator
 
-A portable, cross-harness orchestration layer for coding agents. It discovers your project, resolves which MCPs/skills/workflows/CLI tools a task actually needs, enforces a small set of **mandatory** capabilities as real gates (not suggestions), and dispatches bounded, verifiable work to subagents — on Codex, Claude Code, OpenCode and Kilo alike.
+You write one line. The agent plans the work, splits it across parallel subagents, writes their
+prompts, runs them, reviews the result, proves it works, and stops. You are not in the loop for any
+of the steps in between.
+
+```
+/task "users can't reset their password from the mobile app"
+```
+
+That is the whole interface. What happens after you press enter:
+
+| | |
+|---|---|
+| **Classifies** | Bug, feature, incident, refactor, investigation, review, deploy, config or research — each has its own workflow, gates and evidence rules. |
+| **Reads your project** | Languages, frameworks, test and build commands, CI, plus any rules you wrote in `AGENTS.md`. Your rules tighten the defaults; they never get silently dropped. |
+| **Builds a flow** | Phases, parallel groups, dependencies — each shard with its own scope, owner, acceptance conditions and iteration budget. |
+| **Writes the prompts** | Each subagent gets a dispatch contract: the facts that shard needs, the tools it may use, what it must produce. Not a copy of the whole conversation. |
+| **Picks a model per shard** | Cheap model for the mechanical shard, a strong one with high thinking for the hard shard — decided per shard at dispatch time against live pricing, not once for the whole task. |
+| **Runs them in parallel** | Clean sessions, disjoint file ownership, so two agents cannot fight over the same file. |
+| **Gates every phase** | `G0` plan approved → `G1` evidence complete → `G2` hypothesis valid → `G3` a test that actually fails → `G4` suite green → `G5` independent review passed → `G6` verified on the real surfaces. A phase does not start until the gate before it resolves. |
+| **Proves it, then stops** | Completion claims need evidence: fresh local test output, not a subagent's summary. Then it checkpoints what it learned and cleans up its branches and worktrees. |
+
+You get back a result that has been reviewed and verified, plus a written trail of what was decided
+and why. If something is missing — a tool it needs, an ambiguous requirement — it says so up front
+and asks you once, batched, instead of guessing or quietly doing less.
+
+The rest of the command set:
+
+```sh
+/task "describe the work"        # the above, end to end
+/task-plan "describe the work"   # plan only — see the flow before anything runs
+/task-status                     # where the active work stands
+/task-verify                     # re-run verification against acceptance evidence
+/task-cancel                     # stop cleanly
+/incident-start ...              # incident lifecycle: evidence -> fix -> verify -> close
+```
+
+Works on Claude Code, Codex, OpenCode and Kilo — the same flow, rendered into each one's native
+commands and agents.
 
 ## Quick start
 
@@ -104,7 +141,20 @@ formulae unprompted is a worse problem than a missing gate.
 
 ## Why
 
-Every harness reinvents "which tool for which job," and every project's AGENTS.md/CLAUDE.md ends up repeating (and drifting from) the same rules. `llm-orchestrator` centralizes that decision in a small set of portable JSON registries plus a capability resolver, and renders the result into whatever native format your harness understands — commands, agents, skills, prompts.
+Ask an agent to fix a bug and you usually get one long session: it reads a bit, guesses, edits,
+declares victory, and you find out later that nothing was verified. Ask it to parallelize and you
+spend your afternoon writing subagent prompts by hand, then merging the mess when two of them edited
+the same file.
+
+The work that makes the difference is the same every time — classify the task, gather evidence
+before theorizing, write a failing test first, split what can run in parallel, keep agents out of
+each other's files, review independently, verify before claiming done, record what was learned. It
+is mechanical, and nobody wants to re-type it into every prompt.
+
+`llm-orchestrator` makes that flow the default. It ships as a skill your agent must load before it
+does anything, so the process runs whether or not you remembered to ask for it, and it is written
+once in portable form instead of being copy-pasted and left to drift across every project's
+`AGENTS.md` and every harness's config.
 
 ## How it works
 
@@ -362,16 +412,7 @@ Re-running `install --apply` after an update is the entire update procedure — 
 
 ## Usage once installed
 
-```sh
-/task "describe the work"        # plan + dispatch through the resolved capability plan
-/task-plan "describe the work"   # plan only, no dispatch
-/task-status                     # report progress/gaps on active work
-/task-verify                     # run the verification phase against acceptance evidence
-/task-cancel                     # stop active task work cleanly
-/incident-start ...              # incident lifecycle: start -> evidence -> fix -> verify -> close
-```
-
-Exact command names and argument shapes are rendered per harness by `adapters/commands.mjs`; run `--help` on any installed command for the harness-native form.
+The command set is listed at the top of this README. Exact command names and argument shapes are rendered per harness by `adapters/commands.mjs`; run `--help` on any installed command for the harness-native form.
 
 ## Development
 
