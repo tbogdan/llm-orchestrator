@@ -1,5 +1,6 @@
 {
   "name": "tbogdan",
+  "description": "llm-orchestrator: write /task once and the agent plans, shards across parallel subagents, gates every phase and verifies before claiming done.",
   "owner": {
     "name": "Bogdan-Gabriel Torcescu",
     "url": "https://www.linkedin.com/in/bogdantorcescu/"
