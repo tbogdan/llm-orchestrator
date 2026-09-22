@@ -71,3 +71,14 @@ test('init without --project fails with a usage message', () => {
   assert.equal(status, 1);
   assert.match(stderr, /Usage: llm-orchestrator init --project ROOT/);
 });
+
+test('next-command hints match how the CLI was invoked', async () => {
+  const { cliInvocation } = await import('../lib/first-run.mjs');
+  const cloneScript = join(process.cwd(), 'bin', 'llm-orchestrator.mjs');
+  assert.equal(cliInvocation(['node', cloneScript]), 'node bin/llm-orchestrator.mjs');
+  assert.equal(
+    cliInvocation(['node', '/usr/local/lib/node_modules/llm-orchestrator/bin/llm-orchestrator.mjs']),
+    'llm-orchestrator',
+  );
+  assert.equal(cliInvocation(['node']), 'llm-orchestrator');
+});

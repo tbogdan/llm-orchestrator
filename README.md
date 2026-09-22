@@ -5,28 +5,58 @@ A portable, cross-harness orchestration layer for coding agents. It discovers yo
 
 ## Quick start
 
-Three commands, from wherever you keep cloned tools:
+Pick the line that matches your harness. Everything is a dry run until you pass `--apply`.
 
-```sh
-git clone https://github.com/tbogdan/llm-orchestrator.git && cd llm-orchestrator
-node bin/llm-orchestrator.mjs init --project /path/to/app
-node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness> --skills-root <root> --apply
-```
+### Claude Code — install as a plugin
 
-`init` is read-only: it proposes a `--harness` from what it finds in `/path/to/app` (or your home directory), shows the install plan it *would* run, and reports which of the [8 mandatory core tools](#the-8-mandatory-core-tools) are missing with the exact install command for each — nothing is written unless you pass `--apply` (which only appends the `AGENTS.md` bindings template if that section is missing; it never touches the install itself). Everything else in this README explains the same commands in more detail, per harness.
-
-
-### Install as a Claude Code plugin
-
-Claude Code users can skip the clone and install the orchestrator as a plugin:
+No clone, no Node invocation. Type these two in any Claude Code session:
 
 ```
 /plugin marketplace add tbogdan/llm-orchestrator
 /plugin install llm-orchestrator@tbogdan
 ```
 
-That registers the `orchestrate-core` skill from this repository directly. Project bindings and the
-other harnesses still go through `llm-orchestrator init` / `install` as described below.
+That registers the `orchestrate-core` skill straight from this repository, and `/plugin update
+llm-orchestrator@tbogdan` keeps it current. The plugin ships the skill and its resources only — it
+does not write project files. If you also want `.claude/commands/*.md`, the `.claude/agents/orchestrator.md`
+agent and the `@AGENTS.md` line in `CLAUDE.md`, run the CLI install below with `--harness claude`.
+
+### Codex, OpenCode, Kilo — install from npm
+
+Node 22+. `npx` fetches the published package, so there is nothing to clone:
+
+```sh
+npx llm-orchestrator init    --project /path/to/app
+npx llm-orchestrator install --project /path/to/app --harness codex    --apply
+npx llm-orchestrator install --project /path/to/app --harness opencode --apply
+npx llm-orchestrator install --project /path/to/app --harness kilo     --apply
+npx llm-orchestrator install --project /path/to/app --harness claude   --apply
+npx llm-orchestrator doctor  --project /path/to/app --harness <harness>
+```
+
+Prefer it on your PATH? `npm install -g llm-orchestrator`, then drop the `npx` prefix and call
+`llm-orchestrator ...` directly.
+
+### From a clone — development, or pinning a commit
+
+```sh
+git clone https://github.com/tbogdan/llm-orchestrator.git && cd llm-orchestrator
+npm test
+node bin/llm-orchestrator.mjs init    --project /path/to/app
+node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness> --apply
+```
+
+### Which one to use
+
+| Harness | Fastest install | What it gives you | Reload |
+| --- | --- | --- | --- |
+| Claude Code | `/plugin install llm-orchestrator@tbogdan` | the `orchestrate-core` skill | new session |
+| Claude Code (full) | `npx llm-orchestrator install --harness claude --apply` | skill + commands + agent + `CLAUDE.md` binding | `/reload` or new session |
+| Codex | `npx llm-orchestrator install --harness codex --apply` | `AGENTS.md` span, skill, `~/.codex/prompts/*.md` | new Codex session |
+| OpenCode | `npx llm-orchestrator install --harness opencode --apply` | `.opencode/command(s)/*.md`, skill | restart `opencode` |
+| Kilo | `npx llm-orchestrator install --harness kilo --apply` | `.kilo/command(s)/*.md`, skill | restart Kilo |
+
+`init` is read-only: it proposes a `--harness` from what it finds in `/path/to/app` (or your home directory), shows the install plan it *would* run, and reports which of the [8 mandatory core tools](#the-8-mandatory-core-tools) are missing with the exact install command for each — nothing is written unless you pass `--apply` (which only appends the `AGENTS.md` bindings template if that section is missing; it never touches the install itself). Everything else in this README explains the same commands in more detail, per harness.
 
 ## Why
 
@@ -77,14 +107,19 @@ Project-specific bindings live in the consuming project's `AGENTS.md`, under `##
 
 ## Install for your IDE
 
-Dry runs by default — inspect conflicts, then repeat with `--apply`. Existing user-owned files are never silently overwritten. `node bin/llm-orchestrator.mjs install ...` is the entry point; `node bin/install.mjs ...` (same options) still works underneath it.
+Dry runs by default — inspect conflicts, then repeat with `--apply`. Existing user-owned files are never silently overwritten.
 
 ```sh
-node bin/llm-orchestrator.mjs install --project /path/to/app --harness codex
-node bin/llm-orchestrator.mjs install --project /path/to/app --harness claude-code
-node bin/llm-orchestrator.mjs install --project /path/to/app --harness opencode
-node bin/llm-orchestrator.mjs install --project /path/to/app --harness kilo
+npx llm-orchestrator install --project /path/to/app --harness codex
+npx llm-orchestrator install --project /path/to/app --harness claude-code
+npx llm-orchestrator install --project /path/to/app --harness opencode
+npx llm-orchestrator install --project /path/to/app --harness kilo
 ```
+
+`npx llm-orchestrator` (or the bare `llm-orchestrator` after `npm install -g llm-orchestrator`) is
+the entry point. From a clone the same commands are `node bin/llm-orchestrator.mjs ...`; every
+example below spells the clone form, and the npm form is identical minus the `node bin/…` prefix.
+`node bin/install.mjs ...` (same options) still works underneath it.
 
 `--skills-root` is optional: it defaults per harness (`codex` → `~/.agents/skills`, `claude` → `~/.claude/skills`, `opencode` → `~/.config/opencode/skills`, `kilo` → `~/.kilo/skills`), so the four commands above are already complete — pass `--skills-root <dir>` only to override that default. `claude`, `claude-code`, and `claude code` resolve to the same harness.
 
@@ -96,7 +131,11 @@ Multiple harnesses may share one explicitly enabled skill root using a comma-sep
 
 Same five steps for every harness; only the skills root and the reload differ.
 
-1. **Get the package** (Node 22+):
+1. **Get the package** (Node 22+) — either straight from npm:
+   ```sh
+   npx llm-orchestrator --help        # or: npm install -g llm-orchestrator
+   ```
+   or from a clone, when you want to read or pin the source:
    ```sh
    git clone https://github.com/tbogdan/llm-orchestrator.git
    cd llm-orchestrator && npm test
@@ -233,12 +272,22 @@ Prices and measured costs are dated evidence, not live tariffs; refresh `models/
 
 ## Updating
 
+From npm — `npx` always resolves the latest published version, so there is nothing to pull:
+
+```sh
+npx llm-orchestrator@latest install --project /path/to/app --harness <harness> --apply
+```
+
+From a clone:
+
 ```sh
 git -C llm-orchestrator pull
 node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness> --apply
 ```
 
-Re-running `install --apply` after a `git pull` is the entire update procedure — it is the same idempotent apply as a fresh install. Files the package generated and you haven't touched are refreshed to the new version; a project file you hand-edited (an `AGENTS.md` bindings section, a command you customized) is reported as a **conflict** and left untouched — nothing is overwritten silently. Resolve a reported conflict by reviewing the diff yourself and either keeping your edit or deleting the file so the next apply can regenerate it.
+In Claude Code, the plugin updates on its own terms: `/plugin update llm-orchestrator@tbogdan`.
+
+Re-running `install --apply` after an update is the entire update procedure — it is the same idempotent apply as a fresh install. Files the package generated and you haven't touched are refreshed to the new version; a project file you hand-edited (an `AGENTS.md` bindings section, a command you customized) is reported as a **conflict** and left untouched — nothing is overwritten silently. Resolve a reported conflict by reviewing the diff yourself and either keeping your edit or deleting the file so the next apply can regenerate it.
 
 ## Usage once installed
 
