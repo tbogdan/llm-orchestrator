@@ -1,7 +1,7 @@
 {
   "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://portable-orchestrator.dev/schemas/routing-matrix.schema.json",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/routing-matrix.schema.json",
   "title": "Cost-aware routing matrix",
   "description": "Machine-readable encoding of policies/routing.md: tiers, thinking levels, tier × thinking resolution, default routing, task flows, risk floors, agent defaults, escalation ladders, fan-out, caps and quota degradation.",
   "type": "object",

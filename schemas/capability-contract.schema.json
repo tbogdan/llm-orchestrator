@@ -1,7 +1,7 @@
 {
   "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://portable-orchestrator.dev/schemas/capability-contract.schema.json",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/capability-contract.schema.json",
   "title": "Portable capability and dispatch contract",
   "type": "object",
   "required": ["mandatory", "required", "optional", "bindings", "recommendations", "degraded", "gaps", "warnings", "unverified_acceptance", "prohibited_operations"],

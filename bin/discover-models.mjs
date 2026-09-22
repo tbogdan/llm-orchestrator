@@ -44,7 +44,7 @@ function parseArguments(argv) {
       continue;
     }
     if (argument === '--help') {
-      process.stdout.write('Usage: node scripts/discover-agent-models.mjs --harness <codex|claude|opencode|kilo> [--input <snapshot.json>] [--native] [--output <path>]\n');
+      process.stdout.write('Usage: llm-orchestrator models discover --harness <codex|claude|opencode|kilo> [--input <snapshot.json>] [--native] [--output <path>]\n');
       process.exit(0);
     }
     fail('Invalid command-line arguments.');

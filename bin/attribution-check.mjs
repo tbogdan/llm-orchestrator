@@ -15,7 +15,7 @@ const MJS_MARKER = `// ${CREDIT}`;
 // distributed as standalone derivable source, and fixtures must stay
 // byte-exact for discovery hashing tests.
 const SCAN_DIRS = ['lib', 'bin', 'adapters', 'models', 'registries', 'schemas', 'policies', 'workflows', 'docs', 'skills'];
-const ROOT_DOCS = ['README.md', 'COMPATIBILITY.md', 'IMPLEMENTATION.md', 'NOTICE', 'SKILL.md', 'protocol.md'];
+const ROOT_DOCS = ['README.md', 'NOTICE', 'SKILL.md', 'protocol.md'];
 const EXCLUDED_BASENAMES = new Set(['attribution-check.mjs']);
 
 function walk(dir) {

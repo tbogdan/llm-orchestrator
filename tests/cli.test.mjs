@@ -17,7 +17,7 @@ function run(args) {
 test('no subcommand prints help and exits 0', () => {
   const { status, stdout } = run([]);
   assert.equal(status, 0);
-  assert.match(stdout, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|check\|init\|help>/);
+  assert.match(stdout, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|check\|init\|help>/);
 });
 
 for (const flag of ['help', '-h', '--help']) {
@@ -32,7 +32,7 @@ test('an unknown subcommand exits 1 and prints the help', () => {
   const { status, stderr } = run(['not-a-real-subcommand']);
   assert.equal(status, 1);
   assert.match(stderr, /Unknown subcommand: not-a-real-subcommand/);
-  assert.match(stderr, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|check\|init\|help>/);
+  assert.match(stderr, /llm-orchestrator <install\|uninstall\|doctor\|render\|route\|models\|check\|init\|help>/);
 });
 
 test('check passes against this package\'s own tree', () => {

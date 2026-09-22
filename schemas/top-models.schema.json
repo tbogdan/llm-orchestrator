@@ -1,7 +1,7 @@
 {
   "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://portable-orchestrator.dev/schemas/top-models.schema.json",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/top-models.schema.json",
   "title": "Curated model shortlist for agentic coding",
   "description": "Twenty routable models — ten ladder incumbents plus ten measured candidates — and the unpromoted alternatives behind them. Every unsourced field is null by construction: nothing here is interpolated, estimated or inferred from a display name.",
   "type": "object",

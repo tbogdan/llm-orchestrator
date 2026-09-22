@@ -1,23 +1,58 @@
 {
   "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://portable-orchestrator.dev/schemas/installation-manifest.schema.json",
-  "title": "Portable Orchestrator installation manifest",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/installation-manifest.schema.json",
+  "title": "llm-orchestrator installation manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "project_id", "harnesses", "skill_resolution", "files", "spans"],
+  "required": [
+    "version",
+    "project_id",
+    "harnesses",
+    "skill_resolution",
+    "files",
+    "spans"
+  ],
   "properties": {
-    "_attribution": {"type": "string"},
-    "version": {"const": 1},
-    "project_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "harnesses": {"type": "array", "uniqueItems": true, "items": {"enum": ["codex", "claude", "opencode", "kilo"]}},
+    "_attribution": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "harnesses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "codex",
+          "claude",
+          "opencode",
+          "kilo"
+        ]
+      }
+    },
     "skill_resolution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["skills_root_source", "native_discovery"],
+      "required": [
+        "skills_root_source",
+        "native_discovery"
+      ],
       "properties": {
-        "skills_root_source": {"enum": ["operator_provided", "default"]},
-        "native_discovery": {"const": "unverified"}
+        "skills_root_source": {
+          "enum": [
+            "operator_provided",
+            "default"
+          ]
+        },
+        "native_discovery": {
+          "const": "unverified"
+        }
       }
     },
     "files": {
@@ -25,12 +60,38 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["scope", "path", "hash", "kind"],
+        "required": [
+          "scope",
+          "path",
+          "hash",
+          "kind"
+        ],
         "properties": {
-          "scope": {"enum": ["project", "skills"]},
-          "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
-          "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-          "kind": {"enum": ["runtime", "bridge", "native-command"]}
+          "scope": {
+            "enum": [
+              "project",
+              "skills",
+              "prompts"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "kind": {
+            "enum": [
+              "runtime",
+              "bridge",
+              "native-command",
+              "codex-prompt",
+              "agent-file"
+            ]
+          }
         }
       }
     },
@@ -39,17 +100,50 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["scope", "path", "span", "hash", "begin", "end", "before", "after", "created_file"],
+        "required": [
+          "scope",
+          "path",
+          "span",
+          "hash",
+          "begin",
+          "end",
+          "before",
+          "after",
+          "created_file"
+        ],
         "properties": {
-          "scope": {"const": "project"},
-          "path": {"type": "string", "minLength": 1},
-          "span": {"type": "string", "minLength": 1},
-          "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-          "begin": {"type": "string", "minLength": 1},
-          "end": {"type": "string", "minLength": 1},
-          "before": {"type": "string"},
-          "after": {"type": "string"},
-          "created_file": {"type": "boolean"}
+          "scope": {
+            "const": "project"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "span": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "begin": {
+            "type": "string",
+            "minLength": 1
+          },
+          "end": {
+            "type": "string",
+            "minLength": 1
+          },
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          },
+          "created_file": {
+            "type": "boolean"
+          }
         }
       }
     }

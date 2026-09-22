@@ -425,11 +425,22 @@ The command set is listed at the top of this README. Exact command names and arg
 ## Development
 
 ```sh
-node --test tests/*.test.mjs tests/models/*.test.mjs
-node bin/llm-orchestrator.mjs doctor --project /path/to/app --harness codex
-node bin/llm-orchestrator.mjs check
-node bin/attribution-check.mjs --fix
+npm test                                                    # node --test tests/*.test.mjs tests/models/*.test.mjs
+node bin/llm-orchestrator.mjs doctor  --project /path/to/app --harness codex
+node bin/llm-orchestrator.mjs check                         # attribution markers
+node bin/attribution-check.mjs --fix                        # insert missing ones
+node bin/llm-orchestrator.mjs models report --check         # model matrix is current
+node bin/llm-orchestrator.mjs models discover --harness codex --native
 ```
+
+`models discover` writes a model-availability inventory for one harness (`--harness`) — from an
+active-session snapshot (`--input`), by asking that harness's CLI (`--native`), or, given neither, an
+explicitly `unknown` inventory rather than a guess; `--output` writes it to a file instead of stdout.
+`models report` renders the matrix the router reads: `--check` fails when
+`models/model-thinking-matrix.md` no longer matches `models/model-thinking-data.json`, and
+`--available <inventory.json>` narrows the report to what that inventory actually exposes. Routing uses the inventory to refuse work rather than fake it: a
+model the harness does not expose is never selected, and a shard whose tier has nothing eligible is
+blocked instead of silently downgraded.
 
 `docs/COHERENCE.md` names, for each cross-reference class (field names, drawer names, the 8 mandatory tools, task types, agent roles, risk-floor areas, gate labels, the bridge text, CLI flags, policy references), which file is the single source of truth. `tests/coherence.test.mjs` checks those classes mechanically, so drift fails CI instead of being discovered by a reader.
 
@@ -441,11 +452,10 @@ node bin/attribution-check.mjs --fix
 - **`install`/`uninstall` reports a conflict.** That path was hand-edited since the last install (or was never installer-owned to begin with). Nothing was overwritten. Diff it yourself; either keep your version or delete the file so the next `--apply` can (re)generate it. Multiple harnesses claiming inconsistent content for the same shared file (e.g. two different renders of the bridge) also surfaces as a conflict — install one harness at a time in that case, or confirm they'd render identically first.
 - **A mandatory tool is reported missing.** Run `init` (or `doctor`) — both print the exact install command from `registries/preferred-tools.json` for each gap. Until it's installed, the orchestrator runs in declared degraded mode for that capability; it does not pretend the tool is present.
 - **`--skills-root is required` no longer appears.** It used to be mandatory for non-Codex harnesses; it now defaults per harness (see "Install for your IDE"). If several harnesses share a root, make sure each IDE's own config actually points at it — `install` cannot verify a harness's native skill-discovery configuration for you, only render the files.
-- **`route` says "not available in this build".** `bin/route.mjs` ships from a separate work stream in this package; if it's missing from your checkout, cost-aware routing isn't available yet — everything else in this README works independently of it.
 
 ## Attribution
 
-Every file this package owns (registries, schemas, lib, bin, adapters, tests, and every file the installer generates into a consuming project) carries a hidden-but-machine-readable attribution marker:
+Every file this package owns (registries, schemas, lib, bin, adapters, policies, workflows, docs, skills, and every file the installer generates into a consuming project) carries a hidden-but-machine-readable attribution marker. Tests and fixtures are deliberately excluded — fixtures must stay byte-exact for discovery hashing.
 
 - Markdown: line 1, or immediately after frontmatter's closing `---`.
 - JS/MJS: line 1, or line 2 after a shebang.
