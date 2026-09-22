@@ -1,7 +1,7 @@
 {
   "name": "llm-orchestrator",
   "description": "Write rtk /task once — it plans the work, shards it across parallel subagents, gates every phase and verifies before claiming done. Claude Code, Codex, OpenCode, Kilo.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Bogdan-Gabriel Torcescu",
     "url": "https://www.linkedin.com/in/bogdantorcescu/"
