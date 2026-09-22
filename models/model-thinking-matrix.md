@@ -43,6 +43,7 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | claude-opus-5 | Claude Opus 5 | high | 48 | $3.61 | 722 | 125 | +$1.42 (1.65×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | claude-opus-5 | Claude Opus 5 | xhigh | 50 | $4.88 | 976 | 125 | +$1.27 (1.35×); +2 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | claude-opus-5 | Claude Opus 5 | max | 51 | $5.86 | 1172 | 125 | +$0.98 (1.20×); +1 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| claude-opus-5-5 | Claude Opus 5.5 | max | 58 | $5.98 | 1196 | 100 | — | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | low | 47 | $2.37 | 474 | 250 | — | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | medium | 49 | $2.98 | 596 | 250 | +$0.61 (1.26×); +2 score | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | high | 51 | $3.91 | 782 | 250 | +$0.93 (1.31×); +2 score | Segregate from standalone cross-model comparisons. |
@@ -88,6 +89,7 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | GPT-6 Astra | $10.000 | $50.000 | AA-observed price; not a live account tariff. |
 | Claude Sonnet 5 | $2.000 | $10.000 | AA-observed price; not a live account tariff. |
 | Claude Opus 5 | $5.000 | $25.000 | AA-observed price; not a live account tariff. |
+| Claude Opus 5.5 | $4.000 | $20.000 | AA-observed price; not a live account tariff. |
 | Claude Fable 5.1 | $10.000 | $50.000 | AA-observed price; not a live account tariff. |
 | Claude Fable 5 | $10.000 | $50.000 | AA-observed price; not a live account tariff. |
 | Claude Haiku 4.5 | $1.000 | $5.000 | AA-observed price; not a live account tariff. |
@@ -114,6 +116,7 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | GPT-6 Astra | `gpt-6-astra` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Sonnet 5 | `claude-sonnet-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Opus 5 | `claude-opus-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
+| Claude Opus 5.5 | `claude-opus-5-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Fable 5.1 | `claude-fable-5-1` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Fable 5 | `claude-fable-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Haiku 4.5 | `claude-haiku-4-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
@@ -138,6 +141,7 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 - [GPT-6 Astra](https://artificialanalysis.ai/models/gpt-6-astra)
 - [Claude Sonnet 5](https://artificialanalysis.ai/models/claude-sonnet-5)
 - [Claude Opus 5](https://artificialanalysis.ai/models/claude-opus-5)
+- [Claude Opus 5.5](https://artificialanalysis.ai/models/claude-opus-5-5) — Only the max-effort configuration is published (Adaptive Reasoning, Max Effort, Default Fallback); low–xhigh are not measured. The score includes the benchmark default fallback.
 - [Claude Fable 5.1](https://artificialanalysis.ai/models/claude-fable-5-1) — All displayed scores include the benchmark default fallback and are not standalone scores.
 - [Claude Fable 5](https://artificialanalysis.ai/models/claude-fable-5) — AA v4.3.2 max result uses Opus 4.8 default fallback. This legacy catalog model is not in the current leaderboard filter; segregate it from standalone cross-model comparisons.
 - [Claude Haiku 4.5](https://artificialanalysis.ai/models/claude-4-5-haiku) — Its API thinking budget is not an effort enum. The disabled score 15 is incomplete and intentionally excluded.

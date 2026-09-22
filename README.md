@@ -388,7 +388,8 @@ Incumbents hold a seat on a provider ladder. Candidates are measured but unseate
 | GPT-6 Astra | openai | codex | incumbent | F | low, medium, high, xhigh, max (reasoning_effort) | $10 / $50 |
 | Claude Haiku 4.5 | anthropic | claude | incumbent | W | disabled, enabled (budget_tokens) | $1 / $5 |
 | Claude Sonnet 5 | anthropic | claude | incumbent | S | low, medium, high, xhigh, max (effort) | $2 / $10 |
-| Claude Opus 5 | anthropic | claude | incumbent | X | low, medium, high, xhigh, max (effort) | $5 / $25 |
+| Claude Opus 5 | anthropic | claude | incumbent (fallback for Opus 5.5) | X | low, medium, high, xhigh, max (effort) | $5 / $25 |
+| Claude Opus 5.5 | anthropic | claude | incumbent | X | max measured; low–xhigh supported, unmeasured (effort) | $4 / $20 |
 | Claude Fable 5 | anthropic | claude | incumbent | F | low, medium, high, xhigh, max (effort) | $10 / $50 |
 | Claude Fable 5.1 | anthropic | claude | incumbent | F | low, medium, high, xhigh, max (effort) | $10 / $50 |
 | Grok 4.7 | xai | — | incumbent | — (unrated) | low, medium, high, xhigh (reasoning_effort) | $2 / $6 |

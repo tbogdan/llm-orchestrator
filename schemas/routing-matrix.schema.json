@@ -51,7 +51,16 @@
                 "codex": { "type": "string" }
               }
             },
-            "capped_exception": { "type": "object" }
+            "capped_exception": { "type": "object" },
+            "fallbacks": {
+              "type": "object",
+              "description": "Per-ladder models dispatched when the incumbent is not exposed, refuses, or is rolled back.",
+              "properties": {
+                "claude": { "type": "array", "items": { "type": "string" } },
+                "codex": { "type": "array", "items": { "type": "string" } }
+              },
+              "additionalProperties": false
+            }
           },
           "additionalProperties": false
         }

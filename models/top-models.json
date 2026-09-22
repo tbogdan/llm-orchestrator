@@ -23,7 +23,7 @@
       "X": {"min": 45, "max": 50},
       "F": {"min": 51, "max": null}
     },
-    "note": "Bands are calibrated on the incumbents' measured range: Luna tops W at 37; Terra spans 38–42 in S; Sol 33–47 and Opus 39–50 straddle into X, whose seats sit at 45–50; Astra 46–53 and Fable 5.1 47–53 cover F from 51 up. They place *candidates*, which sit on no provider ladder. An incumbent's `tier` is its ladder seat and is never re-derived from a score — which is why two incumbent points fall outside their own band: Opus 5 `max` (51, above its `xhigh` policy cap) and Fable 5 `max` (50, its only measured point and above the unmeasured `high` that is the actual F default)."
+    "note": "Bands are calibrated on the incumbents' measured range: Luna tops W at 37; Terra spans 38–42 in S; Sol 33–47 and Opus 5 39–50 straddle into X, whose seats sit at 45–50; Astra 46–53 and Fable 5.1 47–53 cover F from 51 up. They place *candidates*, which sit on no provider ladder. An incumbent's `tier` is its ladder seat and is never re-derived from a score — which is why two incumbent points fall outside their own band: Opus 5 `max` (51, above its `xhigh` policy cap) and Fable 5 `max` (50, its only measured point and above the unmeasured `high` that is the actual F default)."
   },
   "indices_note": "`indices.thinking_cost_index` is 100 × measured $/task ÷ $0.50, the dataset's benchmark cost baseline (`index_baselines.benchmark_cost_usd`). GPT-5.6 Sol `medium` costs exactly $0.50/task, so it is index 100 by construction. `indices.marginal_thinking` holds, for each adjacent pair of fully measured efforts, the displayed-score delta and the cost multiplier of the step — the price of one more notch of thinking. Efforts with no published cost carry a null index and open no marginal pair; nothing is interpolated.",
   "models": [
@@ -491,11 +491,69 @@
         "share_max": null
       },
       "notes": [
-        "Opus 4.8/4.7/4.6 share the $5/$25 price and are fallback-only.",
+        "Fallback for Claude Opus 5.5 on the Claude X seat: dispatched when Opus 5.5 is not exposed, refuses (it runs without Opus 5.5 thinking blocks), or is rolled back. Opus 4.8/4.7/4.6 share the $5/$25 price and are fallback-only below it.",
         "Every measured Opus config is dominated on $/task by a Sol or Astra config; it stays the Claude X seat for single-provider flows and retention-constrained work."
       ],
       "sources": [
         "https://artificialanalysis.ai/models/claude-opus-5"
+      ],
+      "observed_at": "2026-09-22"
+    },
+    {
+      "key": "claude-opus-5-5",
+      "display_name": "Claude Opus 5.5",
+      "provider": "anthropic",
+      "ladder": "claude",
+      "admission": "incumbent",
+      "tier": "X",
+      "eligible_tiers": ["X"],
+      "supersedes": "claude-opus-5",
+      "api_ids": {
+        "codex": null,
+        "claude": "claude-opus-5-5",
+        "opencode": null,
+        "kilo": null
+      },
+      "context_window": 1000000,
+      "max_output_tokens": 128000,
+      "thinking": {
+        "control": "effort",
+        "levels": ["low", "medium", "high", "xhigh", "max"],
+        "unmeasured_levels": ["low", "medium", "high", "xhigh"],
+        "always_on": true,
+        "default_for_tier": "high",
+        "note": "Thinking is always on: omit `thinking` or send `adaptive`; `disabled` and `budget_tokens` return 400 at every effort. The API default effort is `medium` (one below Opus 5), so X always sets effort explicitly — `high` for T3, `xhigh` for T4. Forced `tool_choice` any/tool returns 400 — use `auto` + instruction, `strict: true`, or structured outputs. Thinking blocks are model-bound; keep transcripts append-only. Computer use only via `computer_toolset_20260801`."
+      },
+      "price": {
+        "input_usd_per_mtok": 4,
+        "output_usd_per_mtok": 20,
+        "cache_read_usd_per_mtok": 0.2,
+        "cache_write_multiplier": 1.25,
+        "fast_mode_note": "`speed: \"fast\"` reprices Opus 5.5 to $8/$40 (Claude API only). Off by default; it never replaces an F dispatch."
+      },
+      "long_context_surcharge": null,
+      "measured": {
+        "max": {"score": 58, "usd_per_task": 5.98}
+      },
+      "measurement_note": "Only `max` is published (Adaptive Reasoning, Max Effort, Default Fallback); the score includes the benchmark default fallback. low–xhigh are unmeasured, so a dispatch at them carries no $/task estimate until Artificial Analysis publishes them.",
+      "indices": {
+        "thinking_cost_index": {
+          "max": 1196
+        },
+        "marginal_thinking": {}
+      },
+      "caps": {
+        "max_effort": "xhigh",
+        "share_max": null
+      },
+      "notes": [
+        "Successor to Claude Opus 5 on the Claude X seat. Every per-token price is lower (Anthropic list: input $4 vs $5, output $20 vs $25, cache read $0.20 vs $0.50, cache write $5 vs $6.25), with the same 1M context, 128K output and tokenizer, so the router ranks it ahead of Opus 5 at the same effort; Opus 5 stays routable as its fallback.",
+        "Only `max` is independently measured (Artificial Analysis 58 @ $5.98, above every other shortlisted config). Anthropic's launch table puts it above Opus 5 on every published benchmark (Terminal-Bench 4.0 66.4 vs 52.3, FrontierCode v1.1 54.4 vs 48.0, CursorBench 4.0 57.8 vs 46.6) and claims ~40% lower cost on typical workloads — vendor figures, kept as notes and never used as $/task estimates.",
+        "Seat stays X: an incumbent tier is never re-derived from a score."
+      ],
+      "sources": [
+        "https://artificialanalysis.ai/models/claude-opus-5-5",
+        "https://www.anthropic.com/claude-opus-5-5"
       ],
       "observed_at": "2026-09-22"
     },

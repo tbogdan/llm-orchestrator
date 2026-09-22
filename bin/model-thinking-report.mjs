@@ -158,7 +158,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.stdout.write(buildAvailableReport(data, inventory));
   } else if (process.argv.includes('--check')) {
     const report = buildReport(data);
-    if (readFileSync(reportPath, 'utf8') !== report) throw new Error(`${reportPath} is stale; run node scripts/model-thinking-report.mjs`);
+    if (readFileSync(reportPath, 'utf8') !== report) {
+      process.stderr.write(`${reportPath} is stale; regenerate it with: llm-orchestrator models report\n`);
+      process.exitCode = 1;
+    }
   } else {
     writeFileSync(reportPath, buildReport(data));
   }

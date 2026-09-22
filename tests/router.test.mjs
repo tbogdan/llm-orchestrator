@@ -28,10 +28,12 @@ test('both registries carry the attribution marker as the first key', () => {
   }
 });
 
-test('the shortlist is exactly 20 routable models: 10 ladder incumbents and 10 measured candidates', () => {
+test('the shortlist is exactly 21 routable models: 11 ladder incumbents and 10 measured candidates', () => {
+  // 11 incumbents since Claude Opus 5.5 took the Claude X seat and Opus 5 stayed
+  // routable as its fallback.
   const top = loadTopModels();
-  assert.equal(top.models.length, 20);
-  assert.equal(top.models.filter((model) => model.admission === 'incumbent').length, 10);
+  assert.equal(top.models.length, 21);
+  assert.equal(top.models.filter((model) => model.admission === 'incumbent').length, 11);
   assert.equal(top.models.filter((model) => model.admission === 'candidate').length, 10);
   assert.deepEqual(
     top.models.filter((model) => model.admission === 'candidate').map((model) => model.key).sort(),
@@ -98,7 +100,15 @@ test('every pair used by the matrix has a resolution row and every measured poin
     const measurements = byKey.get(model.key);
     assert.ok(measurements, `${model.key} is not in model-thinking-data.json`);
     assert.deepEqual(Object.keys(model.measured), [...measurements.keys()], `${model.key} does not carry the dataset's effort labels verbatim`);
-    assert.deepEqual(model.thinking.levels, [...measurements.keys()], `${model.key} declares thinking levels the dataset did not measure`);
+    // An effort the API supports but the benchmark has not measured must be
+    // declared in `unmeasured_levels`, never silently added to `levels`.
+    const unmeasured = model.thinking.unmeasured_levels ?? [];
+    for (const effort of unmeasured) assert.ok(!measurements.has(effort), `${model.key}/${effort} is measured but listed as unmeasured`);
+    assert.deepEqual(
+      model.thinking.levels.filter((effort) => !unmeasured.includes(effort)),
+      [...measurements.keys()],
+      `${model.key} declares thinking levels the dataset did not measure`,
+    );
     for (const [effort, point] of Object.entries(model.measured)) {
       const origin = measurements.get(effort);
       assert.ok(origin, `${model.key}/${effort} has no measured origin`);
@@ -107,7 +117,7 @@ test('every pair used by the matrix has a resolution row and every measured poin
     }
     covered += 1;
   }
-  assert.equal(covered, 20, 'byte-equality must cover all 20 routable models');
+  assert.equal(covered, 21, 'byte-equality must cover all 21 routable models');
 });
 
 test('agent-roles default tiers are full pairs and agree with the routing matrix', () => {
@@ -409,12 +419,12 @@ test('CLI --flow estimates a whole flow and --list enumerates the vocabulary', (
   assert.match(list.stdout, /Risk-floor areas:/);
 });
 
-test('CLI --list prints all 20 models with tier, admission and thinking levels', () => {
+test('CLI --list prints all 21 models with tier, admission and thinking levels', () => {
   const list = spawnSync(process.execPath, [CLI, '--list'], { encoding: 'utf8' });
   assert.equal(list.status, 0, list.stderr);
-  assert.match(list.stdout, /Models \(20\) — key \| tier \| admission \| thinking levels:/);
+  assert.match(list.stdout, /Models \(21\) — key \| tier \| admission \| thinking levels:/);
   const rows = list.stdout.split('\n').filter((line) => /^ {2}[a-z0-9-]+ \| (W|S|X|F|—) \| (incumbent|candidate) \| /.test(line));
-  assert.equal(rows.length, 20);
+  assert.equal(rows.length, 21);
   assert.equal(rows.filter((line) => line.includes('| candidate |')).length, 10);
   assert.ok(rows.some((line) => line.startsWith('  glm-5-3-flash | S | candidate | default')));
 });
@@ -448,4 +458,23 @@ test('CLI exits 1 with usage on bad arguments', () => {
     assert.equal(run.status, 1, `expected exit 1 for ${JSON.stringify(argv)}`);
     assert.match(run.stderr, /Usage: route\.mjs/);
   }
+});
+
+test('Claude Opus 5.5 succeeds Opus 5 on price, with Opus 5 as the fallback', () => {
+  // X T3 on Claude: Opus 5.5 has no measured `high` point, Opus 5 does. Cost
+  // ranking alone would keep Opus 5; succession puts 5.5 first because every
+  // per-token price is at or below Opus 5's — and says so, without estimating.
+  const rows = admittedModels(rankModels({ pair: 'X T3', provider: 'anthropic' }));
+  assert.equal(rows[0].model, 'claude-opus-5-5');
+  assert.equal(rows[0].effort, 'high');
+  assert.equal(rows[0].est_usd_per_task, null, 'an unmeasured effort must not borrow a $/task');
+  assert.ok(rows[0].cap_notes.some((note) => note.includes('succeeds claude-opus-5')));
+  assert.equal(rows[1].model, 'claude-opus-5', 'Opus 5 must stay directly behind as the fallback');
+  assert.equal(rows[1].est_usd_per_task, 3.61);
+
+  // A harness that does not expose Opus 5.5 falls back to Opus 5, measured.
+  const inventory = { models: [{ id: 'claude-opus-5', efforts: ['high', 'xhigh'], availability: 'exposed' }] };
+  const fallback = admittedModels(rankModels({ pair: 'X T3', provider: 'anthropic', inventory }));
+  assert.equal(fallback[0].model, 'claude-opus-5');
+  assert.equal(fallback[0].est_usd_per_task, 3.61);
 });

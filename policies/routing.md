@@ -76,7 +76,7 @@ the incumbents below are role mappings, not guarantees of availability.
 | --- | --- | --- | --- |
 | **W** worker | local, mechanical, repetitive, well-defined: code search, classification, extraction, small edits, boilerplate, simple tests, consistency checks, scoped transforms | Haiku 4.5 (`claude-haiku-4-5`) | `gpt-5.6-luna` |
 | **S** standard | default software-engineering model: normal implementation, frontend/backend, moderate debugging, tests, reasonable multi-file refactors, codebase analysis, tool use | Sonnet 5 (`claude-sonnet-5`) | `gpt-5.6-terra` |
-| **X** senior | hard debugging, architecture, concurrency, migrations, security, auth, payments, billing, backwards compatibility, critical code review, many invariants | Opus 5 (`claude-opus-5`) | `gpt-5.6-sol` |
+| **X** senior | hard debugging, architecture, concurrency, migrations, security, auth, payments, billing, backwards compatibility, critical code review, many invariants | Opus 5.5 (`claude-opus-5-5`), falling back to Opus 5 (`claude-opus-5`) | `gpt-5.6-sol` |
 | **F** frontier | exceptional escalation: very ambiguous, long-horizon, cross-system, major architecture, very large codebase, planning under heavy constraints, or when X fails to produce a solid solution | Fable 5 (`claude-fable-5`) — default F. Fable 5.1 (`claude-fable-5-1`) is a hard-capped exception: **≤2% of all dispatches**, explicit request or documented F-T4 failure on Fable 5 only | GPT-6 Astra (`gpt-6-astra`) — a real single-agent frontier tier, no decomposition workaround needed |
 
 Escalation order within a provider: **W → S → X → F**.
@@ -87,15 +87,20 @@ Verified prices (Sep 2026, provider pricing pages), USD in/out per MTok:
 | --- | --- | --- | --- | --- |
 | W | Haiku 4.5 (200K ctx) | $1 / $5 | `gpt-5.6-luna` (1.05M ctx) | $0.20 / $1.20 |
 | S | Sonnet 5 (1M ctx) | $2 / $10 | `gpt-5.6-terra` (1.05M ctx) | $2 / $12 |
-| X | Opus 5 (1M ctx) | $5 / $25 | `gpt-5.6-sol` (1.05M ctx) | $4 / $20 |
+| X | Opus 5.5 (1M ctx); fallback Opus 5 $5 / $25 | $4 / $20 | `gpt-5.6-sol` (1.05M ctx) | $4 / $20 |
 | F | Fable 5 (1M ctx) | $10 / $50 | `gpt-6-astra` (1.05M ctx) | $10 / $50 list — **but the cheapest F per completed task of any model here** |
 | F+ (≤2%) | Fable 5.1 (1M ctx) | $10 / $50 list — **effective cost significantly higher** (always-on thinking, longer turns, more output tokens per task) | — (Astra covers F) | — |
 
 Claude notes: Fable 5.1 shares Fable 5's list price but costs significantly more per completed task
 — judge it on cost per task, not per token. **When F is needed, use Fable 5; Fable 5.1 is capped at
 ≤2% of dispatches.** Fable 5.1 cache reads bill at $0.25/MTok; Fable 5 uses the standard
-10%-of-input cache-read rate. Opus 5 fast mode (`speed: "fast"`) reprices Opus to $10 / $50 —
-Fable-tier cost for Opus-tier output, so it never replaces an F dispatch and is off by default.
+10%-of-input cache-read rate. Opus 5.5 is at or below Opus 5 on every per-token price (input $4 vs $5,
+output $20 vs $25, cache read $0.20 vs $0.50, cache write $5 vs $6.25); only its `max` effort is
+independently measured so far, so the router ranks it ahead of Opus 5 by `supersedes` price
+succession — never by an estimated $/task — and keeps Opus 5 as the fallback when 5.5 is not exposed
+or refuses. Opus 5.5's API default effort is `medium`, one below Opus 5, so X always sets effort
+explicitly. Fast mode (`speed: "fast"`) reprices Opus 5.5 to $8 / $40 and Opus 5 to $10 / $50 —
+never a replacement for an F dispatch, off by default.
 Legacy fallbacks: Opus 4.8 / 4.7 / 4.6 $5 / $25, Sonnet 4.6 $3 / $15 (more expensive than Sonnet 5 —
 never pick it for cost).
 

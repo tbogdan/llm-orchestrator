@@ -235,6 +235,23 @@
       ]
     },
     {
+      "key": "claude-opus-5-5",
+      "display_name": "Claude Opus 5.5",
+      "provider": "Anthropic",
+      "api_id": "claude-opus-5-5",
+      "input_usd_per_mtok": 4,
+      "output_usd_per_mtok": 20,
+      "source": "https://artificialanalysis.ai/models/claude-opus-5-5",
+      "measurement_note": "Only the max-effort configuration is published (Adaptive Reasoning, Max Effort, Default Fallback); low–xhigh are not measured. The score includes the benchmark default fallback.",
+      "measurements": [
+        [
+          "max",
+          58,
+          5.98
+        ]
+      ]
+    },
+    {
       "key": "claude-fable-5-1",
       "display_name": "Claude Fable 5.1",
       "provider": "Anthropic",
