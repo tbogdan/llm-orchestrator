@@ -189,8 +189,15 @@ test('uninstall dry run reports the owned project changes without removing them'
   await applyInstallation(options(fx));
   const plan = await planUninstall(options(fx));
   assert.ok(plan.changes.some(({path}) => path === '.agents/skills/orchestrate/SKILL.md'));
-  assert.ok(plan.retained_runtime.includes('SKILL.md'));
+  assert.ok(plan.retained_shared_runtime.includes('SKILL.md'));
   await readFile(join(fx.project, '.agents', 'skills', 'orchestrate', 'SKILL.md'));
+
+  // Dry run and apply used to spell this field differently (retained_runtime vs
+  // retained_shared_runtime), so a caller reading the documented name got
+  // undefined from one of them. Both paths must agree with the README.
+  const applied = await uninstallInstallation(options(fx));
+  assert.ok(Array.isArray(applied.retained_shared_runtime), 'uninstall --apply must return retained_shared_runtime');
+  assert.ok(!('retained_runtime' in applied) && !('retained_runtime' in plan), 'the old spelling must not come back');
 });
 
 test('upgrades remove unchanged obsolete runtime files and preserve edited files', async () => {
