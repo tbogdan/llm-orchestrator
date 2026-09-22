@@ -42,8 +42,16 @@ The rest of the command set:
 /task-status                     # where the active work stands
 /task-verify                     # re-run verification against acceptance evidence
 /task-cancel                     # stop cleanly
-/incident-start ...              # incident lifecycle: evidence -> fix -> verify -> close
+/orchestrate                     # load the entrypoint without starting a task
+
+/incident-start                  # open the record, start bounded evidence collection
+/incident-evidence               # logs, metrics, traces — no fix yet
+/incident-fix                    # apply it inside the evidenced scope
+/incident-verify                 # reproducible checks against the recorded evidence
+/incident-close                  # only after verification is recorded
 ```
+
+The installer renders all eleven into your harness's native command directory.
 
 Works on Claude Code, Codex, OpenCode and Kilo — the same flow, rendered into each one's native
 commands and agents.
@@ -434,7 +442,8 @@ node bin/llm-orchestrator.mjs models discover --harness codex --native
 ```
 
 `models discover` writes a model-availability inventory for one harness (`--harness`) — from an
-active-session snapshot (`--input`), by asking that harness's CLI (`--native`), or, given neither, an
+active-session snapshot (`--input`), by asking that harness's CLI (`--native`, which only OpenCode
+exposes today), or, given neither, an
 explicitly `unknown` inventory rather than a guess; `--output` writes it to a file instead of stdout.
 `models report` renders the matrix the router reads: `--check` fails when
 `models/model-thinking-matrix.md` no longer matches `models/model-thinking-data.json`, and

@@ -27,6 +27,8 @@ const MODELS_HELP = `llm-orchestrator models <discover|report> [options]
              --harness <codex|claude|opencode|kilo>   which harness to describe
              --input <snapshot.json>                  read an active-session snapshot
              --native                                 ask the harness CLI directly
+                                                      (OpenCode only today; other
+                                                      harnesses expose no listing)
              --output <path>                          write there instead of stdout
              With neither --input nor --native, it emits an explicitly "unknown"
              inventory rather than guessing what is available.

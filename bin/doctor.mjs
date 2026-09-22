@@ -24,12 +24,17 @@ const WORKFLOW_DIRS = ['.agents/workflows', '.claude/workflows', '.kilo/workflow
 const IDENTIFIER = /^[a-z][a-z0-9._:-]{0,159}$/;
 const execFileAsync = promisify(execFile);
 
+class HelpRequested extends Error {}
+
 function usage() {
   return 'Usage: doctor --project <root> --harness <codex|claude|opencode|kilo> [--inventory <json> --confirm-runtime-inventory] [--task <type>] [--phase <plan|build|verify|review|investigate>] [--role <id>] [--signals <comma-separated>] [--requires-shell] [--nontrivial] [--decisions <json>] [--user-skills] [--native-core]';
 }
 
 function parseArgs(args) {
   const values = { flags: new Set() };
+  // Asking for help is not a usage error: it belongs on stdout with exit 0, the
+  // way every other subcommand answers it.
+  if (args.includes('--help') || args.includes('-h')) throw new HelpRequested();
   const flagNames = new Set(['--requires-shell', '--nontrivial', '--confirm-runtime-inventory', '--user-skills', '--native-core']);
   for (let index = 0; index < args.length; index += 1) {
     const key = args[index];
@@ -186,6 +191,10 @@ try {
   };
   process.stdout.write(`${JSON.stringify({ project, inventory, capability_plan: capabilityPlan, declare_first: declareFirst }, null, 2)}\n`);
 } catch (error) {
-  process.stderr.write(`${error instanceof Error && error.message.startsWith('Usage:') ? error.message : 'Doctor could not read the bounded diagnostic input'}\n`);
-  process.exitCode = 2;
+  if (error instanceof HelpRequested) {
+    process.stdout.write(`${usage()}\n`);
+  } else {
+    process.stderr.write(`${error instanceof Error && error.message.startsWith('Usage:') ? error.message : 'Doctor could not read the bounded diagnostic input'}\n`);
+    process.exitCode = 2;
+  }
 }

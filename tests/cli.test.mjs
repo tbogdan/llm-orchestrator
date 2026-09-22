@@ -82,3 +82,12 @@ test('next-command hints match how the CLI was invoked', async () => {
   );
   assert.equal(cliInvocation(['node']), 'llm-orchestrator');
 });
+
+test('every subcommand answers --help on stdout with exit 0', () => {
+  for (const subcommand of ['install', 'uninstall', 'doctor', 'render', 'route', 'check', 'init', 'models']) {
+    const result = run([subcommand, '--help']);
+    assert.equal(result.status, 0, `${subcommand} --help exited ${result.status}`);
+    assert.ok(result.stdout.trim().length > 0, `${subcommand} --help wrote nothing to stdout`);
+    assert.equal(result.stderr.trim(), '', `${subcommand} --help wrote to stderr`);
+  }
+});
