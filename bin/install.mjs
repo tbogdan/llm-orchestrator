@@ -39,7 +39,15 @@ try {
     if (options.apply && options.linkClaude && (!result.conflicts || result.conflicts.length === 0) && options.harnesses.includes('claude')) {
       claudeSymlink = await linkClaudeSkillsRoot(options.skillsRoot);
     }
-    process.stdout.write(`${JSON.stringify({...result, files: result.files?.map(({absolutePath, content, ...file}) => file), ...(claudeSymlink ? {claudeSymlink} : {})}, null, 2)}\n`);
+    // `install` never writes the project bindings section — only `init --apply`
+    // does — so say so here, or a user who only ever runs `install` never learns
+    // the section exists and the core runs on its generic matrix forever.
+    const {agentsMdHasBindings, cliInvocation, BINDINGS_HEADING} = await import('../lib/first-run.mjs');
+    const bindingsPresent = await agentsMdHasBindings(options.project);
+    const bindings = bindingsPresent
+      ? {present: true}
+      : {present: false, section: BINDINGS_HEADING, next: `${cliInvocation()} init --project ${options.project} --apply`};
+    process.stdout.write(`${JSON.stringify({...result, files: result.files?.map(({absolutePath, content, ...file}) => file), ...(claudeSymlink ? {claudeSymlink} : {}), bindings}, null, 2)}\n`);
     if (result.conflicts?.length) process.exitCode = 2;
   }
 } catch (error) {

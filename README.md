@@ -282,7 +282,7 @@ Same five steps for every harness; only the skills root and the reload differ.
    node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness>
    ```
 3. **Apply** the same command with `--apply`. Re-running is idempotent; a file you edited by hand is reported as a conflict, never overwritten.
-4. **Add project bindings** to `/path/to/app/AGENTS.md` (template below, or run `init --apply` to append it automatically when the section is missing). The core reads this section on every task; without it the core still runs with its generic matrix.
+4. **Add project bindings** to `/path/to/app/AGENTS.md` (template below, or run `init --apply` to append it automatically when the section is missing). `install` reports `bindings.present` and, when false, the exact `init --apply` command. The core reads this section on every task; without it the core still runs with its generic matrix.
 5. **Verify and reload**: `node bin/llm-orchestrator.mjs doctor --project /path/to/app --harness <harness>` must list every mandatory core tool as `present` (or as a declared gap with an install hint). Then reload the harness session so the skill catalog is refreshed.
 
 `node bin/llm-orchestrator.mjs init --project /path/to/app` runs steps 2, 4 (report only) and 5 together, before you commit to a harness — it proposes `--harness` from what it detects, shows the same dry-run plan, and lists exactly which of the 8 mandatory tools are missing with an install command for each.

@@ -91,3 +91,28 @@ test('every subcommand answers --help on stdout with exit 0', () => {
     assert.equal(result.stderr.trim(), '', `${subcommand} --help wrote to stderr`);
   }
 });
+
+test('install --apply says whether the project bindings section exists and how to add it', async () => {
+  const { mkdtemp, writeFile, mkdir } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const base = await mkdtemp(join(tmpdir(), 'llm-orchestrator-bindings-'));
+  const project = join(base, 'app');
+  await mkdir(project, { recursive: true });
+  await writeFile(join(project, 'package.json'), '{"name":"demo"}\n');
+  const common = ['--project', project, '--harness', 'codex', '--skills-root', join(base, 'skills'), '--state-root', join(base, 'state'), '--codex-prompts-root', join(base, 'prompts'), '--apply'];
+  const env = { ...process.env, HOME: base, XDG_STATE_HOME: join(base, 'state') };
+
+  const first = spawnSync(process.execPath, [cli, 'install', ...common], { cwd: repoRoot, encoding: 'utf8', env });
+  assert.equal(first.status, 0, first.stderr);
+  const before = JSON.parse(first.stdout).bindings;
+  assert.equal(before.present, false);
+  assert.equal(before.section, '## Orchestration bindings (project)');
+  assert.match(before.next, /^node bin\/llm-orchestrator\.mjs init --project .* --apply$/);
+
+  const init = spawnSync(process.execPath, [cli, 'init', '--project', project, '--harness', 'codex', '--skills-root', join(base, 'skills'), '--state-root', join(base, 'state'), '--apply'], { cwd: repoRoot, encoding: 'utf8', env });
+  assert.equal(init.status, 0, init.stderr);
+
+  const second = spawnSync(process.execPath, [cli, 'install', ...common], { cwd: repoRoot, encoding: 'utf8', env });
+  assert.equal(second.status, 0, second.stderr);
+  assert.deepEqual(JSON.parse(second.stdout).bindings, { present: true });
+});
