@@ -1,0 +1,17 @@
+llm-orchestrator
+Copyright (c) 2026 Bogdan-Gabriel Torcescu
+
+This project is licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), see LICENSE. Attribution to Bogdan-Gabriel Torcescu and the embedded attribution markers must be preserved in every copy or derivative.
+
+Author / maintainer: Bogdan-Gabriel Torcescu
+https://www.linkedin.com/in/bogdantorcescu/
+
+No third-party skill, workflow, or policy implementation is bundled or
+redistributed by this package beyond what is authored in this repository.
+Registries reference third-party MCP servers and CLI tools by name only
+(e.g. context7, sequential-thinking, rtk); this package does not vendor
+their source and does not claim authorship over them.
+
+If you copy or derive from this project's registries, schemas, lib, bin,
+adapters, models, or fixtures, keep this attribution notice and the
+in-file attribution markers intact.

@@ -1,0 +1,4 @@
+{
+  "name": "mobile",
+  "dependencies": { "@capacitor/core": "^7.0.0" }
+}

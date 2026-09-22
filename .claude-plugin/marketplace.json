@@ -1,0 +1,14 @@
+{
+  "name": "tbogdan",
+  "owner": {
+    "name": "Bogdan-Gabriel Torcescu",
+    "url": "https://www.linkedin.com/in/bogdantorcescu/"
+  },
+  "plugins": [
+    {
+      "name": "llm-orchestrator",
+      "source": "./",
+      "description": "Portable, cross-harness mandatory orchestration core — capability resolution, dispatch contracts, cost-aware routing, gates and verification."
+    }
+  ]
+}

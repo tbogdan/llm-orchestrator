@@ -1,0 +1,235 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-orchestrator.dev/schemas/top-models.schema.json",
+  "title": "Curated model shortlist for agentic coding",
+  "description": "Twenty routable models — ten ladder incumbents plus ten measured candidates — and the unpromoted alternatives behind them. Every unsourced field is null by construction: nothing here is interpolated, estimated or inferred from a display name.",
+  "type": "object",
+  "required": ["_attribution", "schema_version", "observed_at", "measurement_source", "tier_bands", "models", "candidates"],
+  "properties": {
+    "_attribution": { "type": "string" },
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "observed_at": { "type": "string" },
+    "purpose": { "type": "string" },
+    "measurement_source": {
+      "type": "object",
+      "required": ["dataset", "benchmark", "version", "note"],
+      "properties": {
+        "dataset": { "type": "string" },
+        "benchmark": { "type": "string" },
+        "version": { "type": "string" },
+        "leaderboard_url": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "harness_id_note": { "type": "string" },
+    "tier_note": { "type": "string" },
+    "admission_note": { "type": "string" },
+    "ladder_note": { "type": "string" },
+    "indices_note": { "type": "string" },
+    "tier_bands": {
+      "type": "object",
+      "required": ["basis", "applies_to", "bands", "note"],
+      "properties": {
+        "basis": { "type": "string" },
+        "applies_to": { "enum": ["candidate", "all"] },
+        "bands": {
+          "type": "object",
+          "required": ["W", "S", "X", "F"],
+          "properties": {
+            "W": { "type": "object", "required": ["min", "max"], "properties": { "min": { "type": ["number", "null"] }, "max": { "type": ["number", "null"] } }, "additionalProperties": false },
+            "S": { "type": "object", "required": ["min", "max"], "properties": { "min": { "type": ["number", "null"] }, "max": { "type": ["number", "null"] } }, "additionalProperties": false },
+            "X": { "type": "object", "required": ["min", "max"], "properties": { "min": { "type": ["number", "null"] }, "max": { "type": ["number", "null"] } }, "additionalProperties": false },
+            "F": { "type": "object", "required": ["min", "max"], "properties": { "min": { "type": ["number", "null"] }, "max": { "type": ["number", "null"] } }, "additionalProperties": false }
+          },
+          "additionalProperties": false
+        },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "models": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "display_name",
+          "provider",
+          "ladder",
+          "admission",
+          "tier",
+          "eligible_tiers",
+          "api_ids",
+          "context_window",
+          "max_output_tokens",
+          "thinking",
+          "price",
+          "long_context_surcharge",
+          "measured",
+          "indices",
+          "caps",
+          "notes",
+          "sources",
+          "observed_at"
+        ],
+        "properties": {
+          "key": { "type": "string" },
+          "display_name": { "type": "string" },
+          "provider": { "type": "string" },
+          "ladder": { "type": ["string", "null"], "enum": ["codex", "claude", "open", "third-party", null] },
+          "admission": { "enum": ["incumbent", "candidate"] },
+          "tier": { "type": ["string", "null"] },
+          "eligible_tiers": { "type": "array", "items": { "enum": ["W", "S", "X", "F"] } },
+          "api_ids": {
+            "type": "object",
+            "required": ["codex", "claude", "opencode", "kilo"],
+            "properties": {
+              "codex": { "type": ["string", "null"] },
+              "claude": { "type": ["string", "null"] },
+              "opencode": { "type": ["string", "null"] },
+              "kilo": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          },
+          "canonical_api_id": { "type": ["string", "null"] },
+          "context_window": { "type": ["integer", "null"], "minimum": 1 },
+          "max_output_tokens": { "type": ["integer", "null"], "minimum": 1 },
+          "thinking": {
+            "type": "object",
+            "required": ["control", "levels", "always_on"],
+            "properties": {
+              "control": { "enum": ["reasoning_effort", "effort", "budget_tokens", "provider-default"] },
+              "levels": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+              "always_on": { "type": ["boolean", "null"] },
+              "default_for_tier": { "type": ["string", "null"] },
+              "note": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "price": {
+            "type": "object",
+            "required": ["input_usd_per_mtok", "output_usd_per_mtok"],
+            "properties": {
+              "input_usd_per_mtok": { "type": ["number", "null"], "minimum": 0 },
+              "output_usd_per_mtok": { "type": ["number", "null"], "minimum": 0 },
+              "cache_read_usd_per_mtok": { "type": ["number", "null"], "minimum": 0 },
+              "cache_write_multiplier": { "type": ["number", "null"], "minimum": 0 },
+              "fast_mode_note": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "long_context_surcharge": {
+            "type": ["object", "null"],
+            "required": ["threshold_input_tokens", "input_multiplier", "output_multiplier"],
+            "properties": {
+              "threshold_input_tokens": { "type": "integer", "minimum": 1 },
+              "input_multiplier": { "type": "number", "minimum": 1 },
+              "output_multiplier": { "type": "number", "minimum": 1 },
+              "effective_input_usd_per_mtok": { "type": "number", "minimum": 0 },
+              "effective_output_usd_per_mtok": { "type": "number", "minimum": 0 },
+              "note": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "measured": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z]+$": {
+                "type": "object",
+                "required": ["score", "usd_per_task"],
+                "properties": {
+                  "score": { "type": ["number", "null"] },
+                  "usd_per_task": { "type": ["number", "null"], "minimum": 0 }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "measurement_note": { "type": "string" },
+          "indices": {
+            "type": "object",
+            "required": ["thinking_cost_index", "marginal_thinking"],
+            "properties": {
+              "thinking_cost_index": {
+                "type": "object",
+                "patternProperties": { "^[a-z]+$": { "type": ["number", "null"], "minimum": 0 } },
+                "additionalProperties": false
+              },
+              "marginal_thinking": {
+                "type": "object",
+                "patternProperties": {
+                  "^[a-z]+->[a-z]+$": {
+                    "type": "object",
+                    "required": ["delta_score", "cost_multiplier"],
+                    "properties": {
+                      "delta_score": { "type": "number" },
+                      "cost_multiplier": { "type": "number", "minimum": 0 }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "caps": {
+            "type": "object",
+            "required": ["max_effort", "share_max"],
+            "properties": {
+              "max_effort": { "type": "string" },
+              "share_max": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "requires_explicit_flag": { "type": "boolean" },
+              "context_cap_tokens": { "type": "integer", "minimum": 1 },
+              "t4_substitution": {
+                "type": "object",
+                "required": ["effort", "requires_independent_second_reviewer"],
+                "properties": {
+                  "effort": { "type": "string" },
+                  "requires_independent_second_reviewer": { "type": "boolean" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "notes": { "type": "array", "items": { "type": "string" } },
+          "sources": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "observed_at": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "display_name", "provider", "canonical_api_id", "price", "measured", "note", "source"],
+        "properties": {
+          "key": { "type": "string" },
+          "display_name": { "type": "string" },
+          "provider": { "type": "string" },
+          "canonical_api_id": { "type": ["string", "null"] },
+          "price": {
+            "type": "object",
+            "required": ["input_usd_per_mtok", "output_usd_per_mtok"],
+            "properties": {
+              "input_usd_per_mtok": { "type": ["number", "null"], "minimum": 0 },
+              "output_usd_per_mtok": { "type": ["number", "null"], "minimum": 0 }
+            },
+            "additionalProperties": false
+          },
+          "measured": { "type": "object" },
+          "note": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

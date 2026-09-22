@@ -1,0 +1,70 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-orchestrator.dev/schemas/project-profile.schema.json",
+  "title": "ProjectProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "observed_at", "root", "facts", "languages", "frameworks", "domains", "commands", "fingerprint", "coverage", "limitations"],
+  "properties": {
+    "_attribution": { "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "root": { "type": "string" },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value", "evidence", "confidence"],
+        "properties": {
+          "kind": { "type": "string" },
+          "value": { "type": "string" },
+          "evidence": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "confidence": { "enum": ["high", "medium", "low"] }
+        }
+      }
+    },
+    "languages": { "type": "array", "items": { "type": "string" } },
+    "frameworks": { "type": "array", "items": { "type": "string" } },
+    "domains": { "type": "array", "items": { "type": "string" } },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "cwd", "package_manager", "evidence", "confidence"],
+        "properties": {
+          "command": { "type": "string" },
+          "cwd": { "type": "string" },
+          "package_manager": { "type": "string" },
+          "evidence": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "confidence": { "enum": ["high", "medium", "low"] }
+        }
+      }
+    },
+    "fingerprint": { "type": "string", "pattern": "^[a-f0-9]{16}$" }
+    ,"bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mandatory_commands": { "type": "array", "items": { "type": "string" } },
+        "live_mcps": { "type": "array", "items": { "type": "string" } },
+        "agent_overrides": { "type": "object", "additionalProperties": { "type": "string" } },
+        "domain_rules": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+    ,"coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_files", "max_directory_entries", "listed_files", "truncated"],
+      "properties": {
+        "max_files": { "type": "integer", "minimum": 1 },
+        "max_directory_entries": { "type": "integer", "minimum": 1 },
+        "listed_files": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  }
+}

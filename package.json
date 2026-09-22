@@ -1,0 +1,65 @@
+{
+  "name": "llm-orchestrator",
+  "version": "1.0.0",
+  "description": "Portable, cross-harness mandatory orchestration core (Codex, Claude Code, OpenCode, Kilo) — capability resolution, dispatch contracts, and harness adapters.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "CC-BY-4.0",
+  "author": {
+    "name": "Bogdan-Gabriel Torcescu",
+    "url": "https://www.linkedin.com/in/bogdantorcescu/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tbogdan/llm-orchestrator.git"
+  },
+  "keywords": [
+    "orchestration",
+    "llm",
+    "agents",
+    "claude-code",
+    "codex",
+    "opencode",
+    "kilo",
+    "mcp"
+  ],
+  "bin": {
+    "llm-orchestrator": "bin/llm-orchestrator.mjs",
+    "llm-orchestrator-install": "bin/install.mjs",
+    "llm-orchestrator-uninstall": "bin/uninstall.mjs",
+    "llm-orchestrator-doctor": "bin/doctor.mjs",
+    "llm-orchestrator-render": "bin/render.mjs"
+  },
+  "files": [
+    "adapters",
+    "bin",
+    "lib",
+    "models",
+    "registries",
+    "schemas",
+    "SKILL.md",
+    "protocol.md",
+    "policies",
+    "workflows",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "COMPATIBILITY.md",
+    "IMPLEMENTATION.md",
+    "skills",
+    ".claude-plugin"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs tests/models/*.test.mjs",
+    "attribution:check": "node bin/attribution-check.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/tbogdan/llm-orchestrator#readme",
+  "bugs": {
+    "url": "https://github.com/tbogdan/llm-orchestrator/issues"
+  }
+}

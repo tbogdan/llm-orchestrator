@@ -1,0 +1,6 @@
+{
+  "name": "site",
+  "scripts": { "test": "vitest run" },
+  "dependencies": { "vue": "^3.5.0", "vite": "^6.0.0" },
+  "devDependencies": { "typescript": "^5.0.0" }
+}

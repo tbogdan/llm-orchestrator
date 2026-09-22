@@ -1,0 +1,19 @@
+{
+  "name": "llm-orchestrator",
+  "description": "Portable, cross-harness mandatory orchestration core — capability resolution, dispatch contracts, cost-aware routing, gates and verification.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Bogdan-Gabriel Torcescu",
+    "url": "https://www.linkedin.com/in/bogdantorcescu/"
+  },
+  "homepage": "https://github.com/tbogdan/llm-orchestrator",
+  "repository": "https://github.com/tbogdan/llm-orchestrator",
+  "license": "CC-BY-4.0",
+  "keywords": [
+    "orchestration",
+    "agents",
+    "planning",
+    "verification",
+    "routing"
+  ]
+}

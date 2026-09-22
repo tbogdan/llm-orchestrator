@@ -1,0 +1,595 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "version": 2,
+  "tools": [
+    {
+      "id": "mempalace",
+      "kind": "mcp",
+      "capabilities": [
+        "memory.recall",
+        "memory.checkpoint"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "MemPalace",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "claude mcp add mempalace -- npx -y mempalace-mcp"
+    },
+    {
+      "id": "native-memory",
+      "kind": "native_tool",
+      "capabilities": [
+        "memory.recall",
+        "memory.checkpoint"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "skill-discovery",
+      "aliases": [
+        "find-skills"
+      ],
+      "kind": "skill",
+      "capabilities": [
+        "skill.check"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "Skill discovery",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "harness-native-question",
+      "kind": "native_tool",
+      "capabilities": [
+        "user.native_question"
+      ],
+      "scope": "harness",
+      "source": "preferred core profile",
+      "display_name": "Harness-native question mechanism",
+      "notes": "AskUserQuestion (Claude Code), request_user_input or update_plan + one explicit question (Codex), question (OpenCode), ask_followup_question (Kilo)."
+    },
+    {
+      "id": "single-explicit-message",
+      "kind": "native_tool",
+      "capabilities": [
+        "user.native_question"
+      ],
+      "scope": "harness",
+      "source": "native fallback",
+      "notes": "One explicit single-message question with the same structure. A fallback, never the default."
+    },
+    {
+      "id": "native-skill-check",
+      "kind": "native_tool",
+      "capabilities": [
+        "skill.check"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "tool-search",
+      "kind": "native_tool",
+      "capabilities": [
+        "tool.discovery"
+      ],
+      "scope": "harness",
+      "source": "native tool search"
+    },
+    {
+      "id": "verification-before-completion",
+      "kind": "skill",
+      "capabilities": [
+        "verification.checks"
+      ],
+      "scope": "user",
+      "source": "preferred verification implementation",
+      "display_name": "Verification before completion",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "llm-orchestrator install --with-skill verification-before-completion"
+    },
+    {
+      "id": "production-telemetry-collector",
+      "kind": "agent_role",
+      "capabilities": [
+        "incident.telemetry_first"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "incident-orchestration",
+      "kind": "skill",
+      "capabilities": [
+        "incident.protocol_order"
+      ],
+      "scope": "user",
+      "source": "preferred incident implementation",
+      "display_name": "Incident orchestration",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "route-data-flow-tracer",
+      "kind": "agent_role",
+      "capabilities": [
+        "code.locate"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "adversarial-skeptic",
+      "kind": "agent_role",
+      "capabilities": [
+        "review.adversarial"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "serena",
+      "kind": "mcp",
+      "capabilities": [
+        "code.semantic_edit"
+      ],
+      "scope": "user",
+      "source": "preferred semantic-edit implementation",
+      "display_name": "Serena",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "caveman-cavecrew-investigator",
+      "kind": "agent_role",
+      "capabilities": [
+        "code.locate"
+      ],
+      "scope": "harness",
+      "source": "caveman crew role"
+    },
+    {
+      "id": "caveman-cavecrew-builder",
+      "kind": "agent_role",
+      "capabilities": [
+        "code.locate",
+        "refactor.preservation"
+      ],
+      "scope": "harness",
+      "source": "caveman crew role"
+    },
+    {
+      "id": "caveman-cavecrew-reviewer",
+      "kind": "agent_role",
+      "capabilities": [
+        "review.independent"
+      ],
+      "scope": "harness",
+      "source": "caveman crew role"
+    },
+    {
+      "id": "design-system",
+      "kind": "skill",
+      "capabilities": [
+        "ui.design_system"
+      ],
+      "scope": "project",
+      "source": "preferred UI implementation",
+      "display_name": "Design system",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "ui-styling",
+      "kind": "skill",
+      "capabilities": [
+        "ui.design_system"
+      ],
+      "scope": "project",
+      "source": "preferred UI implementation"
+    },
+    {
+      "id": "stripe-best-practices",
+      "kind": "skill",
+      "capabilities": [
+        "billing.provider_evidence"
+      ],
+      "scope": "project",
+      "source": "preferred billing implementation"
+    },
+    {
+      "id": "cypilot-pr-review",
+      "kind": "skill",
+      "capabilities": [
+        "traceability.cypilot",
+        "review.independent"
+      ],
+      "scope": "project",
+      "source": "project traceability tool"
+    },
+    {
+      "id": "db-migration-author",
+      "kind": "agent_role",
+      "capabilities": [
+        "config.migration_author",
+        "database.migration_checks"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "xcodebuildmcp",
+      "kind": "mcp",
+      "capabilities": [
+        "mobile.platform_evidence"
+      ],
+      "scope": "user",
+      "source": "preferred iOS implementation",
+      "display_name": "XcodeBuildMCP",
+      "recommendation_kind": "product",
+      "installable": true,
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "cloudflare-builds",
+      "kind": "mcp",
+      "capabilities": [
+        "deployment.authorized_target"
+      ],
+      "scope": "user",
+      "source": "preferred edge-deploy implementation",
+      "display_name": "Cloudflare Builds",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "feature-dev-code-architect",
+      "kind": "agent_role",
+      "capabilities": [
+        "workflow.plan"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "caveman",
+      "kind": "skill",
+      "capabilities": [
+        "communication.concise"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "Caveman",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "llm-orchestrator install --with-skill caveman"
+    },
+    {
+      "id": "native-concise-policy",
+      "kind": "native_tool",
+      "capabilities": [
+        "communication.concise"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "superpowers-workflows",
+      "aliases": [
+        "superpowers",
+        "using-superpowers"
+      ],
+      "kind": "workflow",
+      "capabilities": [
+        "workflow.selection",
+        "workflow.design",
+        "workflow.plan",
+        "workflow.tdd",
+        "workflow.debug",
+        "workflow.review",
+        "verification.checks"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "Superpowers",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "npx -y superpowers install"
+    },
+    {
+      "id": "native-workflow-selection",
+      "kind": "native_tool",
+      "capabilities": [
+        "workflow.selection",
+        "workflow.design",
+        "workflow.plan",
+        "workflow.tdd",
+        "workflow.debug",
+        "workflow.review",
+        "verification.checks"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "rtk",
+      "kind": "cli",
+      "capabilities": [
+        "shell.rtk"
+      ],
+      "scope": "project",
+      "source": "preferred core profile",
+      "display_name": "RTK",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "cargo install rtk"
+    },
+    {
+      "id": "native-shell-wrapper",
+      "kind": "native_tool",
+      "capabilities": [
+        "shell.rtk"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "sequential-thinking",
+      "aliases": [
+        "sequentialthinking"
+      ],
+      "kind": "mcp",
+      "capabilities": [
+        "reasoning.checkpoints"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "Sequential Thinking",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking"
+    },
+    {
+      "id": "native-decision-checkpoints",
+      "kind": "native_tool",
+      "capabilities": [
+        "reasoning.checkpoints"
+      ],
+      "scope": "harness",
+      "source": "native fallback"
+    },
+    {
+      "id": "exa-search",
+      "aliases": [
+        "exa"
+      ],
+      "kind": "mcp",
+      "capabilities": [
+        "research.retrieve",
+        "research.provenance",
+        "research.validation"
+      ],
+      "scope": "user",
+      "source": "preferred core profile",
+      "display_name": "Exa Search",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "claude mcp add exa -- npx -y exa-mcp-server"
+    },
+    {
+      "id": "native-web",
+      "kind": "native_tool",
+      "capabilities": [
+        "research.retrieve",
+        "research.provenance",
+        "research.validation",
+        "docs.current"
+      ],
+      "scope": "harness",
+      "source": "native research fallback"
+    },
+    {
+      "id": "context7",
+      "kind": "mcp",
+      "capabilities": [
+        "docs.current"
+      ],
+      "scope": "user",
+      "source": "preferred documentation implementation",
+      "display_name": "Context7",
+      "recommendation_kind": "product",
+      "installable": true,
+      "install": "claude mcp add context7 -- npx -y @upstash/context7-mcp"
+    },
+    {
+      "id": "project-test-runner",
+      "kind": "cli",
+      "capabilities": [
+        "test.behavioral",
+        "refactor.preservation",
+        "database.migration_checks",
+        "verification.checks"
+      ],
+      "scope": "project",
+      "source": "project command",
+      "display_name": "Project test runner",
+      "recommendation_kind": "capability_gap",
+      "installable": false
+    },
+    {
+      "id": "playwright",
+      "kind": "mcp",
+      "capabilities": [
+        "browser.inspect",
+        "browser.interact",
+        "browser.capture"
+      ],
+      "scope": "project",
+      "source": "preferred browser implementation",
+      "display_name": "Playwright",
+      "recommendation_kind": "product",
+      "installable": true
+    },
+    {
+      "id": "native-browser",
+      "kind": "native_tool",
+      "capabilities": [
+        "browser.inspect",
+        "browser.interact",
+        "browser.capture"
+      ],
+      "scope": "harness",
+      "source": "native browser fallback"
+    },
+    {
+      "id": "ios-debugger-agent",
+      "kind": "skill",
+      "capabilities": [
+        "mobile.platform_evidence"
+      ],
+      "scope": "project",
+      "source": "preferred iOS implementation",
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "android-performance",
+      "kind": "skill",
+      "capabilities": [
+        "mobile.platform_evidence"
+      ],
+      "scope": "project",
+      "source": "preferred Android implementation",
+      "platforms": [
+        "android"
+      ]
+    },
+    {
+      "id": "mobile-platform-cli",
+      "kind": "cli",
+      "capabilities": [
+        "mobile.platform_evidence"
+      ],
+      "scope": "project",
+      "source": "platform CLI fallback"
+    },
+    {
+      "id": "billing-provider-api",
+      "kind": "mcp",
+      "capabilities": [
+        "billing.provider_evidence"
+      ],
+      "scope": "user",
+      "source": "authorized provider API",
+      "display_name": "Authorized billing-provider evidence",
+      "recommendation_kind": "capability_gap",
+      "installable": false
+    },
+    {
+      "id": "push-provider-api",
+      "kind": "mcp",
+      "capabilities": [
+        "push.provider_evidence"
+      ],
+      "scope": "user",
+      "source": "authorized provider API"
+    },
+    {
+      "id": "db-client",
+      "kind": "cli",
+      "capabilities": [
+        "database.schema_provenance",
+        "database.migration_checks"
+      ],
+      "scope": "project",
+      "source": "database fallback"
+    },
+    {
+      "id": "db-concurrency-specialist",
+      "kind": "agent_role",
+      "capabilities": [
+        "concurrency.review"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "gh",
+      "kind": "cli",
+      "capabilities": [
+        "forge.remote"
+      ],
+      "scope": "project",
+      "source": "forge CLI fallback"
+    },
+    {
+      "id": "independent-reviewer",
+      "kind": "agent_role",
+      "capabilities": [
+        "review.independent"
+      ],
+      "scope": "harness",
+      "source": "independent reviewer"
+    },
+    {
+      "id": "provider-webhook-specialist",
+      "kind": "agent_role",
+      "capabilities": [
+        "review.independent"
+      ],
+      "scope": "harness",
+      "source": "specialist role"
+    },
+    {
+      "id": "harness-docs",
+      "kind": "skill",
+      "capabilities": [
+        "harness.docs",
+        "schema.validation"
+      ],
+      "scope": "harness",
+      "source": "official harness documentation"
+    },
+    {
+      "id": "schema-validator",
+      "kind": "cli",
+      "capabilities": [
+        "schema.validation"
+      ],
+      "scope": "project",
+      "source": "schema validation command",
+      "display_name": "Schema validation command",
+      "recommendation_kind": "capability_gap",
+      "installable": false
+    },
+    {
+      "id": "deployment-tool",
+      "kind": "cli",
+      "capabilities": [
+        "deployment.authorized_target",
+        "deployment.precheck",
+        "deployment.smoke",
+        "deployment.rollback"
+      ],
+      "scope": "project",
+      "source": "project deployment tooling"
+    },
+    {
+      "id": "delegation-runtime",
+      "kind": "native_tool",
+      "capabilities": [
+        "delegation.bounded"
+      ],
+      "scope": "harness",
+      "source": "native delegation runtime"
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "version": 2,
+  "obligation_levels": {
+    "mandatory": "Skipping it makes the work invalid, not merely worse. It is a gate. If it cannot run, stop and say so; do not proceed and mention it afterwards.",
+    "optional": "Use when the stated trigger holds. Judgment call, but the trigger is not.",
+    "available": "Exists, costs nothing to ignore, reach for it when it fits."
+  },
+  "task_type_vocabulary_note": "protocol.md, registries/routing-matrix.json and bin/route.mjs speak the UPPER_SNAKE task type; this registry and lib/capability-resolver.mjs speak the lowercase id. task_types is the single map between them, and it also names the workflow file for each type. Never add a task type in one place only.",
+  "task_types": [
+    { "type": "INCIDENT", "id": "incident", "workflow": "workflows/incident.md" },
+    { "type": "FEATURE", "id": "feature", "workflow": "workflows/feature.md" },
+    { "type": "BUG_FIX", "id": "bug", "workflow": "workflows/bug-fix.md" },
+    { "type": "REFACTOR", "id": "refactor", "workflow": "workflows/refactor.md" },
+    { "type": "INVESTIGATION", "id": "investigation", "workflow": "workflows/investigation.md" },
+    { "type": "DEPLOY", "id": "deployment", "workflow": "workflows/deploy.md" },
+    { "type": "CONFIG", "id": "config", "workflow": "workflows/config.md" },
+    { "type": "REVIEW", "id": "review", "workflow": "workflows/review.md" },
+    { "type": "RESEARCH", "id": "research", "workflow": "workflows/research.md" }
+  ],
+  "mappings": [
+    {
+      "id": "research-documentation",
+      "when": { "any_task_types": ["research", "documentation"], "any_task_signals": ["current-facts", "external-facts", "source-claims"] },
+      "requirements": [
+        { "id": "research.retrieve", "level": "required", "scope": "task", "reason": "Current or external factual claims need source retrieval.", "acceptance": ["source-provenance"], "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] },
+        { "id": "research.provenance", "level": "required", "scope": "task", "reason": "Factual claims need attributed provenance.", "acceptance": ["source-provenance"], "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] },
+        { "id": "research.validation", "level": "optional", "scope": "task", "reason": "An additional source-quality pass improves external factual claims.", "acceptance": ["source-validation"], "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "research.retrieve", "trigger": "Any current or external factual claim.", "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] }
+        ],
+        "optional": [
+          { "capability": "research.validation", "trigger": "External/recent source-quality needs a second pass.", "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] }
+        ],
+        "available": [
+          { "capability": "research.provenance", "trigger": "Any factual write-up benefits from attributed sources.", "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] }
+        ]
+      }
+    },
+    {
+      "id": "feature",
+      "when": { "any_task_types": ["feature"] },
+      "requirements": [
+        { "id": "workflow.design", "level": "required", "scope": "phase", "reason": "Behavior changes need an explicit design before implementation.", "applies_when": { "any_phases": ["planning"] }, "acceptance": ["approved-design"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+        { "id": "workflow.plan", "level": "required", "scope": "phase", "reason": "Multi-step feature work needs a plan.", "applies_when": { "any_phases": ["planning"] }, "acceptance": ["implementation-plan"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+        { "id": "workflow.tdd", "level": "required", "scope": "phase", "reason": "Executable changes need behavior tests.", "applies_when": { "any_phases": ["implementation"] }, "acceptance": ["behavioral-test"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+        { "id": "verification.checks", "level": "required", "scope": "phase", "reason": "Acceptance checks must be run before completion.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["verification-output"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["project-test-runner"] },
+        { "id": "test.behavioral", "level": "required", "scope": "task", "reason": "Executable feature behavior needs a test or equivalent check.", "applies_when": { "any_phases": ["implementation", "verification"] }, "acceptance": ["behavioral-test"], "preferred_implementations": ["project-test-runner"], "allowed_alternatives": [] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "workflow.brainstorm", "trigger": "Before entering plan mode.", "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+          { "capability": "workflow.tdd", "trigger": "The failing test is written before implementation.", "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] }
+        ],
+        "optional": [
+          { "capability": "docs.current", "trigger": "Any library/SDK API surface, even a familiar one.", "preferred_implementations": ["context7"], "allowed_alternatives": ["native-web"] },
+          { "capability": "ui.design_system", "trigger": "Any new UI.", "preferred_implementations": ["design-system", "ui-styling"], "allowed_alternatives": [] },
+          { "capability": "billing.provider_evidence", "trigger": "A money path is touched.", "preferred_implementations": ["stripe-best-practices"], "allowed_alternatives": [] },
+          { "capability": "code.semantic_edit", "trigger": "A large cross-file edit is planned.", "preferred_implementations": ["serena"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "workflow.plan", "trigger": "Architecture-shaped feature planning.", "preferred_implementations": ["feature-dev-code-architect"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "bug-incident",
+      "when": { "any_task_types": ["bug", "incident"] },
+      "requirements": [
+        { "id": "workflow.debug", "level": "required", "scope": "phase", "reason": "Bug fixes require evidence and a tested hypothesis.", "applies_when": { "any_phases": ["investigation", "implementation"] }, "acceptance": ["reproduction-evidence", "hypothesis-evidence"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+        { "id": "test.behavioral", "level": "required", "scope": "task", "reason": "A bug fix needs a regression check.", "applies_when": { "any_phases": ["implementation", "verification"] }, "acceptance": ["regression-check"], "preferred_implementations": ["project-test-runner"], "allowed_alternatives": [] },
+        { "id": "review.independent", "level": "optional", "scope": "role", "reason": "Ambiguous or high-risk diagnosis benefits from an adversarial challenge.", "applies_when": { "any_phases": ["review"] }, "acceptance": ["independent-review"], "preferred_implementations": ["independent-reviewer"], "allowed_alternatives": [] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "workflow.systematic_debugging", "trigger": "Reproduce before fixing (BUG_FIX).", "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] },
+          { "capability": "incident.telemetry_first", "trigger": "INCIDENT: before any hypothesis.", "preferred_implementations": ["production-telemetry-collector"], "allowed_alternatives": [] },
+          { "capability": "incident.protocol_order", "trigger": "INCIDENT: start -> evidence -> fix -> verify -> close, in order.", "preferred_implementations": ["incident-orchestration"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "code.locate", "trigger": "Symptom crosses layers.", "preferred_implementations": ["route-data-flow-tracer"], "allowed_alternatives": [] },
+          { "capability": "concurrency.review", "trigger": "An interleaving is suspected.", "preferred_implementations": ["db-concurrency-specialist"], "allowed_alternatives": [] },
+          { "capability": "browser.inspect", "trigger": "The symptom is UI-visible.", "preferred_implementations": ["playwright"], "allowed_alternatives": ["native-browser"] },
+          { "capability": "memory.recall", "trigger": "The symptom rhymes with a prior incident.", "preferred_implementations": ["mempalace"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "code.locate", "trigger": "Locate-only, before deciding a fix approach.", "preferred_implementations": ["caveman-cavecrew-investigator"], "allowed_alternatives": [] },
+          { "capability": "review.adversarial", "trigger": "A second opinion on the hypothesis is cheap and available.", "preferred_implementations": ["adversarial-skeptic"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "refactor",
+      "when": { "any_task_types": ["refactor"] },
+      "requirements": [
+        { "id": "refactor.preservation", "level": "required", "scope": "task", "reason": "A refactor must preserve observable behavior.", "acceptance": ["preservation-check"], "preferred_implementations": ["project-test-runner"], "allowed_alternatives": [] },
+        { "id": "workflow.review", "level": "required", "scope": "phase", "reason": "Ownership and scope need review.", "acceptance": ["scoped-review"], "preferred_implementations": ["superpowers-workflows"], "allowed_alternatives": ["native-workflow-selection"] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "refactor.coverage_first", "trigger": "Coverage must exist before the first edit.", "preferred_implementations": ["project-test-runner"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "code.semantic_edit", "trigger": "Symbol-level moves across many files.", "preferred_implementations": ["serena"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "code.locate", "trigger": "Bounded (<=2 files) mechanical edits.", "preferred_implementations": ["caveman-cavecrew-builder"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "investigation",
+      "when": { "any_task_types": ["investigation"] },
+      "requirements": [
+        { "id": "review.independent", "level": "required", "scope": "role", "reason": "A synthesis never ships from a single source.", "applies_when": { "any_phases": ["review", "synthesis"] }, "acceptance": ["independent-review"], "preferred_implementations": ["independent-reviewer"], "allowed_alternatives": [] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "review.adversarial", "trigger": "On the synthesis — never ship a single-source conclusion.", "preferred_implementations": ["adversarial-skeptic"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "code.semantic_edit", "trigger": "Symbol-aware exploration of a large codebase.", "preferred_implementations": ["serena"], "allowed_alternatives": [] },
+          { "capability": "research.retrieve", "trigger": "An external/recent search is relevant.", "preferred_implementations": ["exa-search"], "allowed_alternatives": ["native-web"] },
+          { "capability": "memory.recall", "trigger": "Before fanning out — the answer may already be filed.", "preferred_implementations": ["mempalace"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "code.locate", "trigger": "Broad read-only location work.", "preferred_implementations": ["caveman-cavecrew-investigator"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "code-library-api-docs",
+      "when": { "any_task_signals": ["version-sensitive", "uncertain-library", "uncertain-platform"] },
+      "requirements": [
+        { "id": "docs.current", "level": "required", "scope": "task", "reason": "Version-sensitive or uncertain API work needs current documentation.", "acceptance": ["versioned-source"], "preferred_implementations": ["context7"], "allowed_alternatives": ["native-web"] }
+      ]
+    },
+    {
+      "id": "web-ui",
+      "when": { "any_task_signals": ["web-ui", "visual-bug", "rendered-behavior"] },
+      "requirements": [
+        { "id": "browser.inspect", "level": "required", "scope": "phase", "reason": "Rendered web acceptance needs browser inspection.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["rendered-ui-acceptance"], "preferred_implementations": ["playwright"], "allowed_alternatives": ["native-browser"] },
+        { "id": "browser.interact", "level": "required", "scope": "phase", "reason": "Rendered web acceptance needs route interaction.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["rendered-ui-acceptance"], "preferred_implementations": ["playwright"], "allowed_alternatives": ["native-browser"] },
+        { "id": "browser.capture", "level": "optional", "scope": "phase", "reason": "A captured viewport makes rendered behavior reviewable.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["rendered-ui-acceptance"], "preferred_implementations": ["playwright"], "allowed_alternatives": ["native-browser"] }
+      ]
+    },
+    {
+      "id": "mobile-native",
+      "when": { "any_task_signals": ["ios", "android", "native-bridge", "mobile-native"] },
+      "requirements": [
+        { "id": "mobile.platform_evidence", "level": "required", "scope": "phase", "reason": "Native acceptance needs platform-specific build or device evidence.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["native-platform-evidence"], "preferred_implementations": ["ios-debugger-agent", "android-performance"], "allowed_alternatives": ["mobile-platform-cli"] }
+      ]
+    },
+    {
+      "id": "billing",
+      "when": { "any_project_domains": ["billing", "stripe", "apple-iap", "google-iap"], "any_task_signals": ["stripe", "apple-iap", "google-iap", "refund", "entitlement", "price", "promotion"] },
+      "requirements": [
+        { "id": "review.independent", "level": "required", "scope": "role", "reason": "Billing, entitlement, and refund work needs independent critical review.", "applies_when": { "any_phases": ["review"] }, "acceptance": ["independent-review"], "preferred_implementations": ["independent-reviewer"], "allowed_alternatives": [] },
+        { "id": "billing.provider_evidence", "level": "required", "scope": "task", "reason": "A provider-state or live-lifecycle claim needs authorized provider evidence.", "applies_when": { "any_task_signals": ["provider-state", "live-lifecycle-claim"], "any_phases": ["investigation", "verification"] }, "acceptance": ["provider-state-evidence"], "preferred_implementations": ["billing-provider-api"], "allowed_alternatives": [] }
+      ]
+    },
+    {
+      "id": "push-firebase",
+      "when": { "any_project_domains": ["push", "firebase"], "any_task_signals": ["push", "firebase", "provider-delivery"] },
+      "requirements": [
+        { "id": "push.provider_evidence", "level": "required", "scope": "task", "reason": "Provider delivery or state diagnosis needs authorized provider evidence.", "applies_when": { "any_task_signals": ["provider-state", "provider-delivery"], "any_phases": ["investigation", "verification"] }, "acceptance": ["provider-state-evidence"], "preferred_implementations": ["push-provider-api"], "allowed_alternatives": [] }
+      ]
+    },
+    {
+      "id": "database-migration",
+      "when": { "any_project_domains": ["database"], "any_task_signals": ["database", "migration", "schema", "concurrency"] },
+      "requirements": [
+        { "id": "database.schema_provenance", "level": "required", "scope": "project", "reason": "Database work needs schema provenance.", "applies_when": { "any_phases": ["planning", "investigation", "implementation"] }, "acceptance": ["schema-provenance"], "preferred_implementations": ["db-client"], "allowed_alternatives": [] },
+        { "id": "database.migration_checks", "level": "required", "scope": "task", "reason": "Migration work needs relevant checks.", "applies_when": { "any_task_signals": ["migration", "schema"], "any_phases": ["implementation", "verification"] }, "acceptance": ["migration-check"], "preferred_implementations": ["project-test-runner"], "allowed_alternatives": ["db-client"] },
+        { "id": "concurrency.review", "level": "required", "scope": "role", "reason": "Concurrency or transactional work needs a relevant review.", "applies_when": { "any_task_signals": ["concurrency"], "any_phases": ["review"] }, "acceptance": ["concurrency-review"], "preferred_implementations": ["db-concurrency-specialist"], "allowed_alternatives": [] }
+      ]
+    },
+    {
+      "id": "forge-remote",
+      "when": { "any_task_signals": ["forge-remote", "github-remote", "pull-request"] },
+      "requirements": [
+        { "id": "forge.remote", "level": "required", "scope": "task", "reason": "A requested forge remote operation needs an authorized forge capability.", "acceptance": ["forge-operation-evidence"], "preferred_implementations": ["gh"], "allowed_alternatives": [] }
+      ]
+    },
+    {
+      "id": "review",
+      "when": { "any_task_types": ["review"] },
+      "requirements": [
+        { "id": "review.independent", "level": "required", "scope": "role", "reason": "Review needs an independent relevant checker.", "acceptance": ["independent-review"], "preferred_implementations": ["independent-reviewer"], "allowed_alternatives": [] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "review.independent", "trigger": "Every review. An independent-reviewer seat if a risk floor applies — cut the implementer, never the reviewer.", "preferred_implementations": ["independent-reviewer"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "review.adversarial", "trigger": "Money, auth, or frozen-build-shaped diffs.", "preferred_implementations": ["adversarial-skeptic"], "allowed_alternatives": [] },
+          { "capability": "traceability.cypilot", "trigger": "The change is PR-shaped.", "preferred_implementations": ["cypilot-pr-review"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "review.independent", "trigger": "A quick second-pass reviewer is available.", "preferred_implementations": ["caveman-cavecrew-reviewer"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "harness-config-skill",
+      "when": { "any_task_types": ["harness", "config", "skill"] },
+      "requirements": [
+        { "id": "harness.docs", "level": "required", "scope": "task", "reason": "Harness or skill work needs relevant versioned documentation.", "acceptance": ["versioned-source"], "preferred_implementations": ["harness-docs"], "allowed_alternatives": ["native-web"] },
+        { "id": "schema.validation", "level": "required", "scope": "task", "reason": "Versioned harness contracts need schema validation.", "acceptance": ["schema-validation"], "preferred_implementations": ["schema-validator"], "allowed_alternatives": ["harness-docs"] }
+      ]
+    },
+    {
+      "id": "config",
+      "when": { "any_task_types": ["config"] },
+      "requirements": [],
+      "obligations": {
+        "mandatory": [
+          { "capability": "config.migration_author", "trigger": "Any schema change — never hand-write a migration.", "preferred_implementations": ["db-migration-author"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "review.independent", "trigger": "A Stripe/Apple/Google webhook is touched.", "preferred_implementations": ["provider-webhook-specialist"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "docs.current", "trigger": "Provider API/config docs are useful context.", "preferred_implementations": ["context7"], "allowed_alternatives": ["native-web"] }
+        ]
+      }
+    },
+    {
+      "id": "deployment",
+      "when": { "any_task_types": ["deployment"] },
+      "requirements": [
+        { "id": "deployment.authorized_target", "level": "required", "scope": "task", "reason": "Deployment requires an authorized target.", "applies_when": { "any_phases": ["precheck"] }, "acceptance": ["authorized-target-evidence"], "preferred_implementations": ["deployment-tool"], "allowed_alternatives": [] },
+        { "id": "deployment.precheck", "level": "required", "scope": "phase", "reason": "Deployment needs prechecks.", "applies_when": { "any_phases": ["precheck"] }, "acceptance": ["deployment-precheck"], "preferred_implementations": ["deployment-tool"], "allowed_alternatives": [] },
+        { "id": "deployment.smoke", "level": "required", "scope": "phase", "reason": "Deployment needs smoke evidence.", "applies_when": { "any_phases": ["verification"] }, "acceptance": ["deployment-smoke"], "preferred_implementations": ["deployment-tool"], "allowed_alternatives": [] },
+        { "id": "deployment.rollback", "level": "required", "scope": "phase", "reason": "Deployment needs rollback evidence.", "applies_when": { "any_phases": ["planning"] }, "acceptance": ["rollback-procedure"], "preferred_implementations": ["deployment-tool"], "allowed_alternatives": [] }
+      ],
+      "obligations": {
+        "mandatory": [
+          { "capability": "deployment.smoke", "trigger": "Every deployment needs post-deploy smoke evidence.", "preferred_implementations": ["deployment-tool"], "allowed_alternatives": [] }
+        ],
+        "optional": [
+          { "capability": "mobile.platform_evidence", "trigger": "A native build is part of the release.", "preferred_implementations": ["xcodebuildmcp", "android-performance"], "allowed_alternatives": [] }
+        ],
+        "available": [
+          { "capability": "deployment.authorized_target", "trigger": "Edge/worker deploy tooling is available.", "preferred_implementations": ["cloudflare-builds"], "allowed_alternatives": [] }
+        ]
+      }
+    },
+    {
+      "id": "parallel-work",
+      "when": { "any_task_signals": ["parallel-work", "delegation"] },
+      "requirements": [
+        { "id": "delegation.bounded", "level": "required", "scope": "task", "reason": "Parallel work needs bounded ownership and verification.", "acceptance": ["delegation-contract"], "preferred_implementations": ["delegation-runtime"], "allowed_alternatives": [] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-orchestrator.dev/schemas/routing-matrix.schema.json",
+  "title": "Cost-aware routing matrix",
+  "description": "Machine-readable encoding of policies/routing.md: tiers, thinking levels, tier × thinking resolution, default routing, task flows, risk floors, agent defaults, escalation ladders, fan-out, caps and quota degradation.",
+  "type": "object",
+  "required": [
+    "_attribution",
+    "schema_version",
+    "tiers",
+    "tier_order",
+    "thinking_levels",
+    "thinking_level_order",
+    "resolution",
+    "pair_normalization",
+    "default_routing",
+    "task_flows",
+    "risk_floors",
+    "risk_to_review_floor",
+    "agent_defaults",
+    "escalation_ladder",
+    "fan_out_minimum",
+    "parallel_bounds",
+    "target_distribution",
+    "caps",
+    "quota_degradation_ladder",
+    "never_give_up",
+    "context_rules"
+  ],
+  "properties": {
+    "_attribution": { "type": "string" },
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "observed_at": { "type": "string" },
+    "source_of_truth": { "type": "string" },
+    "note": { "type": "string" },
+    "tiers": {
+      "type": "object",
+      "patternProperties": {
+        "^[WSXF]$": {
+          "type": "object",
+          "required": ["name", "responsibility", "incumbents"],
+          "properties": {
+            "name": { "type": "string" },
+            "responsibility": { "type": "string" },
+            "incumbents": {
+              "type": "object",
+              "required": ["claude", "codex"],
+              "properties": {
+                "claude": { "type": "string" },
+                "codex": { "type": "string" }
+              }
+            },
+            "capped_exception": { "type": "object" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "tier_order": { "type": "array", "items": { "enum": ["W", "S", "X", "F"] }, "minItems": 4 },
+    "thinking_levels": {
+      "type": "object",
+      "patternProperties": {
+        "^T[0-5]$": {
+          "type": "object",
+          "required": ["use", "claude_effort", "codex_reasoning_effort", "haiku_budget"],
+          "properties": {
+            "use": { "type": "string" },
+            "claude_effort": { "type": ["string", "null"] },
+            "codex_reasoning_effort": { "type": ["string", "null"] },
+            "codex_note": { "type": "string" },
+            "haiku_budget": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "thinking_level_order": { "type": "array", "items": { "type": "string" }, "minItems": 6 },
+    "haiku_budget_rule": { "type": "string" },
+    "resolution": {
+      "type": "object",
+      "patternProperties": {
+        "^[WSXF] T[0-5](-T[0-5])?$": {
+          "type": "object",
+          "required": ["claude", "codex"],
+          "properties": {
+            "claude": { "type": ["object", "null"] },
+            "claude_note": { "type": "string" },
+            "codex": { "type": ["object", "null"] },
+            "codex_note": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "pair_normalization": { "type": "object", "patternProperties": { "^[WSXF] T[0-5]$": { "type": "string" } } },
+    "default_routing": { "type": "object", "patternProperties": { "^[a-z_]+$": { "type": "string" } } },
+    "task_flows": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z_]+$": {
+          "type": "object",
+          "required": ["phases"],
+          "properties": {
+            "phases": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["phase", "pair", "roles", "gate", "parallelizable"],
+                "properties": {
+                  "phase": { "type": "string" },
+                  "pair": { "type": "string" },
+                  "roles": { "type": "array", "items": { "type": "string" } },
+                  "gate": { "type": ["string", "null"] },
+                  "parallelizable": { "type": "boolean" },
+                  "escalation": { "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "risk_floors": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "type": "object",
+          "required": ["implementation", "review", "independent_review"],
+          "properties": {
+            "implementation": { "type": "string" },
+            "review": { "type": ["string", "null"] },
+            "independent_review": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "risk_to_review_floor": {
+      "type": "object",
+      "required": ["low", "medium", "high", "critical"],
+      "properties": {
+        "low": { "type": "string" },
+        "medium": { "type": "string" },
+        "high": { "type": "string" },
+        "critical": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "risk_floor_rule": { "type": "string" },
+    "agent_defaults": { "type": "object", "patternProperties": { "^[a-z0-9-]+$": { "type": "string" } } },
+    "agent_default_notes": { "type": "object" },
+    "escalation_ladder": {
+      "type": "object",
+      "required": ["claude", "codex"],
+      "properties": {
+        "claude": { "type": "array", "minItems": 2, "items": { "type": "object", "required": ["model", "effort"] } },
+        "codex": { "type": "array", "minItems": 2, "items": { "type": "object", "required": ["model", "effort"] } }
+      },
+      "additionalProperties": false
+    },
+    "escalation_rules": { "type": "array", "items": { "type": "string" } },
+    "fan_out_minimum": {
+      "type": "object",
+      "required": ["SIMPLE", "MODERATE", "COMPLEX", "CRITICAL"],
+      "properties": {
+        "SIMPLE": { "type": "integer", "minimum": 1 },
+        "MODERATE": { "type": "integer", "minimum": 1 },
+        "COMPLEX": { "type": "integer", "minimum": 1 },
+        "CRITICAL": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "parallel_bounds": {
+      "type": "object",
+      "required": ["min", "max", "max_active_shards"],
+      "properties": {
+        "min": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1 },
+        "max_active_shards": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "target_distribution": {
+      "type": "object",
+      "required": ["W", "S", "X", "F"],
+      "patternProperties": {
+        "^[WSXF]$": { "type": "array", "minItems": 2, "items": { "type": "number", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
+    "cost_discipline": { "type": "object" },
+    "caps": {
+      "type": "object",
+      "required": ["fable_5_1_share_max", "terra_max_effort", "sol_max_effort", "codex_long_context_cliff_tokens", "haiku_context_cap"],
+      "properties": {
+        "fable_5_1_share_max": { "type": "number", "minimum": 0, "maximum": 1 },
+        "terra_max_effort": { "type": "string" },
+        "sol_max_effort": { "type": "string" },
+        "codex_long_context_cliff_tokens": { "type": "integer", "minimum": 1 },
+        "haiku_context_cap": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "quota_degradation_ladder": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["order", "give_up", "why"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1 },
+          "give_up": { "type": "string" },
+          "why": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "never_give_up": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "context_rules": {
+      "type": "object",
+      "required": ["worker_context_cap_tokens", "worker_shard_soft_cap_tokens", "long_context_cliff_tokens", "rules"],
+      "properties": {
+        "worker_context_cap_tokens": { "type": "integer", "minimum": 1 },
+        "worker_shard_soft_cap_tokens": { "type": "integer", "minimum": 1 },
+        "long_context_cliff_tokens": { "type": "integer", "minimum": 1 },
+        "rules": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "dispatch_metadata_fields": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,127 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-orchestrator.dev/schemas/tool-inventory.schema.json",
+  "title": "ToolInventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observed_at",
+    "harness",
+    "entries",
+    "revision"
+  ],
+  "properties": {
+    "_attribution": { "type": "string" },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "harness": {
+      "enum": [
+        "codex",
+        "claude",
+        "opencode",
+        "kilo"
+      ]
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "capabilities",
+          "scope",
+          "source",
+          "status",
+          "permission",
+          "evidence",
+          "limitations"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kind": {
+            "enum": [
+              "skill",
+              "workflow",
+              "mcp",
+              "native_tool",
+              "cli",
+              "agent_role"
+            ]
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scope": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "installed",
+              "loaded",
+              "callable",
+              "denied",
+              "unknown"
+            ]
+          },
+          "permission": {
+            "enum": [
+              "read_only",
+              "read_write",
+              "denied",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "operation_denied": {
+            "type": "boolean"
+          },
+          "denied_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

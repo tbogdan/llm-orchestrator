@@ -1,0 +1,394 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "schema_version": 1,
+  "observed_at": "2026-09-22",
+  "source_of_truth": "policies/routing.md",
+  "note": "Machine-readable encoding of policies/routing.md. The prose remains authoritative for intent; this registry is what lib/router.mjs and bin/route.mjs execute. Model prices and measured cost per task live in models/top-models.json.",
+  "tiers": {
+    "W": {
+      "name": "worker",
+      "responsibility": "Local, mechanical, repetitive, well-defined: code search, classification, extraction, small edits, boilerplate, simple tests, consistency checks, scoped transforms.",
+      "incumbents": {"claude": "claude-haiku-4-5", "codex": "gpt-5.6-luna"}
+    },
+    "S": {
+      "name": "standard",
+      "responsibility": "Default software-engineering model: normal implementation, frontend/backend, moderate debugging, tests, reasonable multi-file refactors, codebase analysis, tool use.",
+      "incumbents": {"claude": "claude-sonnet-5", "codex": "gpt-5.6-terra"}
+    },
+    "X": {
+      "name": "senior",
+      "responsibility": "Hard debugging, architecture, concurrency, migrations, security, auth, payments, billing, backwards compatibility, critical code review, many invariants.",
+      "incumbents": {"claude": "claude-opus-5", "codex": "gpt-5.6-sol"}
+    },
+    "F": {
+      "name": "frontier",
+      "responsibility": "Exceptional escalation: very ambiguous, long-horizon, cross-system, major architecture, very large codebase, planning under heavy constraints, or when X fails to produce a solid solution.",
+      "incumbents": {"claude": "claude-fable-5", "codex": "gpt-6-astra"},
+      "capped_exception": {"claude": "claude-fable-5-1"}
+    }
+  },
+  "tier_order": ["W", "S", "X", "F"],
+  "thinking_levels": {
+    "T0": {
+      "use": "Mechanical: copy, grep, formatting, trivial edit.",
+      "claude_effort": null,
+      "codex_reasoning_effort": "low",
+      "haiku_budget": "thinking off"
+    },
+    "T1": {
+      "use": "Local, well-defined task.",
+      "claude_effort": "low",
+      "codex_reasoning_effort": "low",
+      "haiku_budget": "thinking off"
+    },
+    "T2": {
+      "use": "Standard implementation, moderate reasoning.",
+      "claude_effort": "medium",
+      "codex_reasoning_effort": "medium",
+      "haiku_budget": "small budget"
+    },
+    "T3": {
+      "use": "Multi-file reasoning, review, debugging, serious planning.",
+      "claude_effort": "high",
+      "codex_reasoning_effort": "high",
+      "haiku_budget": "moderate budget"
+    },
+    "T4": {
+      "use": "Very hard debugging, security, money, concurrency, migrations, architecture, critical compatibility.",
+      "claude_effort": "xhigh",
+      "codex_reasoning_effort": "high",
+      "codex_note": "No usable effort above `high` on the gpt-5.6 family: T4 is `high` plus an independent second reviewer. Astra expresses T4 as `xhigh`.",
+      "haiku_budget": "not available — escalate to S instead of inflating the budget"
+    },
+    "T5": {
+      "use": "Frontier-only; can over-think simple tasks — diminishing returns.",
+      "claude_effort": "max",
+      "codex_reasoning_effort": "max",
+      "codex_note": "Astra `max` only; not available on gpt-5.6.",
+      "haiku_budget": "not available — escalate to S instead of inflating the budget"
+    }
+  },
+  "thinking_level_order": ["T0", "T1", "T2", "T3", "T4", "T5"],
+  "haiku_budget_rule": "The Claude W model has no `effort` parameter — only `thinking: enabled` + `budget_tokens`. T0/T1 = thinking off, T2 = small budget, T3 = moderate budget. If a task would need T4+, escalate to S instead of inflating the budget: a small model that thinks a lot does not become a frontier model.",
+  "resolution": {
+    "W T0-T1": {
+      "claude": {"model": "claude-haiku-4-5", "effort": null, "thinking": "off"},
+      "codex": {"model": "gpt-5.6-luna", "effort": "low"}
+    },
+    "W T2": {
+      "claude": {"model": "claude-haiku-4-5", "effort": null, "thinking": "small budget"},
+      "codex": {"model": "gpt-5.6-luna", "effort": "medium"}
+    },
+    "W T3": {
+      "claude": null,
+      "claude_note": "No headroom at the Claude W tier — escalate to S.",
+      "codex": {"model": "gpt-5.6-luna", "effort": "xhigh", "alternate_effort": "max"}
+    },
+    "S T1": {
+      "claude": {"model": "claude-sonnet-5", "effort": "low"},
+      "codex": {"model": "gpt-5.6-terra", "effort": "low"}
+    },
+    "S T2": {
+      "claude": {"model": "claude-sonnet-5", "effort": "medium"},
+      "codex": {"model": "gpt-5.6-terra", "effort": "medium"}
+    },
+    "S T3": {
+      "claude": {"model": "claude-sonnet-5", "effort": "high"},
+      "codex": {"model": "gpt-5.6-terra", "effort": "high"}
+    },
+    "X T2": {
+      "claude": {"model": "claude-opus-5", "effort": "medium"},
+      "codex": {"model": "gpt-5.6-sol", "effort": "medium"}
+    },
+    "X T3": {
+      "claude": {"model": "claude-opus-5", "effort": "high"},
+      "codex": {"model": "gpt-5.6-sol", "effort": "high"}
+    },
+    "X T4": {
+      "claude": {"model": "claude-opus-5", "effort": "xhigh"},
+      "codex": {"model": "gpt-5.6-sol", "effort": "high", "independent_second_reviewer": {"model": "gpt-5.6-sol", "effort": "high"}}
+    },
+    "F T3": {
+      "claude": {"model": "claude-fable-5", "effort": "high"},
+      "codex": {"model": "gpt-6-astra", "effort": "high"}
+    },
+    "F T4": {
+      "claude": {"model": "claude-fable-5", "effort": "xhigh"},
+      "codex": {"model": "gpt-6-astra", "effort": "xhigh"}
+    },
+    "F T5": {
+      "claude": {"model": "claude-fable-5", "effort": "max", "note": "Essentially never. Fable 5.1 only under the ≤2% cap."},
+      "codex": {"model": "gpt-6-astra", "effort": "max", "note": "Essentially never."}
+    }
+  },
+  "pair_normalization": {
+    "W T0": "W T0-T1",
+    "W T1": "W T0-T1",
+    "W T4": "S T3",
+    "W T5": "S T3",
+    "S T0": "S T1",
+    "S T4": "X T4",
+    "S T5": "X T4",
+    "X T0": "X T2",
+    "X T1": "X T2",
+    "X T5": "F T5",
+    "F T0": "F T3",
+    "F T1": "F T3",
+    "F T2": "F T3"
+  },
+  "default_routing": {
+    "mechanical": "W T0-T1",
+    "standard_implementation": "S T2",
+    "complex_implementation": "S T3",
+    "planning": "S T3",
+    "hard_planning": "X T3",
+    "frontier_planning": "F T3",
+    "difficult_debug_review": "X T3",
+    "critical_risk": "X T4",
+    "frontier": "F T3",
+    "last_escalation": "F T5"
+  },
+  "task_flows": {
+    "INCIDENT": {
+      "phases": [
+        {"phase": "evidence", "pair": "W T0-T1", "roles": ["production-telemetry-collector", "route-data-flow-tracer"], "gate": "telemetry_before_hypothesis", "parallelizable": true},
+        {"phase": "specialist_evidence", "pair": "S T2", "roles": ["route-data-flow-tracer", "backend-fixer"], "gate": "telemetry_before_hypothesis", "parallelizable": true},
+        {"phase": "synthesis", "pair": "X T3", "roles": ["orchestrator"], "gate": "hypothesis_validated", "parallelizable": false, "escalation": "F T3 only if X finds no solid hypothesis"},
+        {"phase": "fix", "pair": "S T2", "roles": ["backend-fixer", "frontend-fixer"], "gate": "risk_floor_implementation", "parallelizable": false},
+        {"phase": "verify", "pair": "S T2", "roles": ["test-engineer"], "gate": "verification_passed", "parallelizable": false},
+        {"phase": "review", "pair": "X T3", "roles": ["code-reviewer", "adversarial-skeptic"], "gate": "independent_review", "parallelizable": false}
+      ]
+    },
+    "FEATURE": {
+      "phases": [
+        {"phase": "plan", "pair": "S T3", "roles": ["orchestrator"], "gate": "plan_accepted", "parallelizable": false, "escalation": "X T3–T4 when complex; F T4 frontier only"},
+        {"phase": "tdd", "pair": "S T2", "roles": ["test-engineer"], "gate": "failing_test_first", "parallelizable": true},
+        {"phase": "implementation", "pair": "S T2", "roles": ["backend-fixer", "frontend-fixer", "frontend-specialist"], "gate": "risk_floor_implementation", "parallelizable": true},
+        {"phase": "mechanical", "pair": "W T0-T1", "roles": ["code-simplifier"], "gate": null, "parallelizable": true},
+        {"phase": "review", "pair": "S T3", "roles": ["code-reviewer"], "gate": "risk_floor_review", "parallelizable": false},
+        {"phase": "re_review", "pair": "S T1", "roles": ["code-reviewer"], "gate": "fixes_landed", "parallelizable": false}
+      ]
+    },
+    "BUG_FIX": {
+      "phases": [
+        {"phase": "reproduce", "pair": "W T0-T1", "roles": ["route-data-flow-tracer"], "gate": "reproduced", "parallelizable": true},
+        {"phase": "hypothesis", "pair": "S T3", "roles": ["backend-fixer", "frontend-fixer"], "gate": "hypothesis_validated", "parallelizable": false, "escalation": "X T3–T4 for money, concurrency or security"},
+        {"phase": "fix", "pair": "S T2", "roles": ["backend-fixer", "frontend-fixer"], "gate": "risk_floor_implementation", "parallelizable": false},
+        {"phase": "regression_test", "pair": "S T2", "roles": ["test-engineer"], "gate": "regression_test_present", "parallelizable": false},
+        {"phase": "review", "pair": "S T2", "roles": ["code-reviewer"], "gate": "risk_floor_review", "parallelizable": false}
+      ]
+    },
+    "REFACTOR": {
+      "phases": [
+        {"phase": "analysis", "pair": "S T2", "roles": ["orchestrator", "code-simplifier"], "gate": "incremental_plan", "parallelizable": false},
+        {"phase": "mechanical_steps", "pair": "W T0-T1", "roles": ["code-simplifier"], "gate": null, "parallelizable": true},
+        {"phase": "verification", "pair": "S T2", "roles": ["test-engineer"], "gate": "behavior_preserved", "parallelizable": false},
+        {"phase": "review", "pair": "S T3", "roles": ["code-reviewer"], "gate": "risk_floor_review", "parallelizable": false}
+      ]
+    },
+    "INVESTIGATION": {
+      "phases": [
+        {"phase": "evidence_collection", "pair": "W T0-T1", "roles": ["route-data-flow-tracer", "production-telemetry-collector"], "gate": "evidence_recorded", "parallelizable": true},
+        {"phase": "synthesis", "pair": "S T2", "roles": ["orchestrator"], "gate": "findings_supported_by_evidence", "parallelizable": false, "escalation": "X T3 if complex"},
+        {"phase": "adversarial_review", "pair": "S T3", "roles": ["adversarial-skeptic"], "gate": "independent_challenge", "parallelizable": false}
+      ]
+    },
+    "DEPLOY": {
+      "phases": [
+        {"phase": "pre_checks", "pair": "W T0-T1", "roles": ["test-engineer"], "gate": "pre_deploy_checks_green", "parallelizable": true},
+        {"phase": "smoke", "pair": "W T0-T1", "roles": ["test-engineer"], "gate": "smoke_passed", "parallelizable": true},
+        {"phase": "soak", "pair": "S T2", "roles": ["production-telemetry-collector"], "gate": "telemetry_clean", "parallelizable": false}
+      ]
+    },
+    "CONFIG": {
+      "phases": [
+        {"phase": "change", "pair": "S T2", "roles": ["backend-fixer"], "gate": "risk_floor_implementation", "parallelizable": false},
+        {"phase": "migration", "pair": "S T3", "roles": ["db-migration-author"], "gate": "migration_and_provenance", "parallelizable": false},
+        {"phase": "review", "pair": "S T3", "roles": ["code-reviewer"], "gate": "risk_floor_review", "parallelizable": false, "escalation": "X T4 review for migrations on money tables"}
+      ]
+    },
+    "REVIEW": {
+      "phases": [
+        {"phase": "review", "pair": "S T3", "roles": ["code-reviewer"], "gate": "risk_floor_review", "parallelizable": false, "escalation": "X T4 for money/security diffs"},
+        {"phase": "adversarial_review", "pair": "S T3", "roles": ["adversarial-skeptic"], "gate": "independent_challenge", "parallelizable": false}
+      ]
+    },
+    "RESEARCH": {
+      "phases": [
+        {"phase": "source_collection", "pair": "W T0-T1", "roles": ["route-data-flow-tracer"], "gate": "sources_recorded", "parallelizable": true},
+        {"phase": "synthesis", "pair": "S T3", "roles": ["orchestrator"], "gate": "claims_corroborated", "parallelizable": false},
+        {"phase": "corroboration", "pair": "S T2", "roles": ["adversarial-skeptic"], "gate": "independent_challenge", "parallelizable": false}
+      ]
+    }
+  },
+  "risk_floors": {
+    "text": {"implementation": "S T1", "review": "S T2", "independent_review": false},
+    "i18n": {"implementation": "S T1", "review": "S T2", "independent_review": false},
+    "ui-cosmetic": {"implementation": "W T0-T1", "review": "S T1", "independent_review": false},
+    "ui-component": {"implementation": "S T2", "review": "S T3", "independent_review": false},
+    "api-crud": {"implementation": "S T2", "review": "S T3", "independent_review": false},
+    "business-logic": {"implementation": "S T3", "review": "X T3", "independent_review": true},
+    "sql": {"implementation": "S T2", "review": "S T3", "independent_review": false},
+    "schema-migration": {"implementation": "S T3", "review": "X T4", "independent_review": true},
+    "realtime": {"implementation": "S T3", "review": "X T3", "independent_review": true},
+    "client-compatibility": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "auth": {"implementation": "S T3", "review": "X T4", "independent_review": true},
+    "security": {"implementation": "S T3", "review": "X T4", "independent_review": true},
+    "payments": {"implementation": "S T3", "review": "X T4", "independent_review": true},
+    "in-app-purchase": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "store-billing": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "refund": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "entitlement": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "concurrency": {"implementation": "X T3", "review": "X T4", "independent_review": true},
+    "major-architecture": {"implementation": "X T4", "review": "F T3", "independent_review": true},
+    "cross-system-redesign": {"implementation": "F T3", "review": "F T4", "independent_review": true},
+    "test-boilerplate": {"implementation": "W T0-T1", "review": null, "independent_review": false}
+  },
+  "risk_to_review_floor": {
+    "low": "S T1",
+    "medium": "S T2",
+    "high": "X T3",
+    "critical": "X T4"
+  },
+  "risk_floor_rule": "Project rows in the consuming project's `## Orchestration bindings (project)` section override these upward, never downward. A cheaper frontier config never overrides a risk-floor row. The reviewer must be an independent agent — a separate child with no full-history fork.",
+  "agent_defaults": {
+    "orchestrator": "S T3",
+    "production-telemetry-collector": "W T0-T1",
+    "route-data-flow-tracer": "W T0-T1",
+    "explore": "W T0-T1",
+    "db-concurrency-specialist": "X T3",
+    "frontend-specialist": "S T3",
+    "provider-webhook-specialist": "X T2",
+    "adversarial-skeptic": "S T3",
+    "test-engineer": "S T2",
+    "db-migration-author": "S T3",
+    "backend-fixer": "S T2",
+    "frontend-fixer": "S T2",
+    "code-simplifier": "S T2",
+    "code-reviewer": "S T2",
+    "general": "S T2"
+  },
+  "agent_default_notes": {
+    "provider-webhook-specialist": "X T3 on broken signatures or idempotency.",
+    "orchestrator": "S T3 default; X T3–T4 when complex; F only for frontier planning.",
+    "code-simplifier": "S T2 per the agent-defaults table; the registry role's own W seat applies only to purely mechanical cleanup passes."
+  },
+  "escalation_ladder": {
+    "claude": [
+      {"model": "claude-haiku-4-5", "effort": null},
+      {"model": "claude-sonnet-5", "effort": "low"},
+      {"model": "claude-sonnet-5", "effort": "medium"},
+      {"model": "claude-sonnet-5", "effort": "high"},
+      {"model": "claude-opus-5", "effort": "high"},
+      {"model": "claude-opus-5", "effort": "xhigh"},
+      {"model": "claude-fable-5", "effort": "high"},
+      {"model": "claude-fable-5", "effort": "xhigh"},
+      {"model": "claude-fable-5", "effort": "max"},
+      {"model": "claude-fable-5-1", "effort": "high", "requires_explicit_flag": true, "note": "≤2% cap, explicit request or documented Fable 5 F-T4 failure only."}
+    ],
+    "codex": [
+      {"model": "gpt-5.6-luna", "effort": "low"},
+      {"model": "gpt-5.6-luna", "effort": "medium"},
+      {"model": "gpt-5.6-luna", "effort": "xhigh"},
+      {"model": "gpt-5.6-luna", "effort": "max"},
+      {"model": "gpt-5.6-terra", "effort": "medium"},
+      {"model": "gpt-5.6-terra", "effort": "high"},
+      {"model": "gpt-5.6-sol", "effort": "medium"},
+      {"model": "gpt-5.6-sol", "effort": "high"},
+      {"model": "gpt-5.6-sol", "effort": "high", "independent_second_reviewer": true},
+      {"model": "gpt-6-astra", "effort": "high"},
+      {"model": "gpt-6-astra", "effort": "xhigh"},
+      {"model": "gpt-6-astra", "effort": "max", "note": "Essentially never."}
+    ]
+  },
+  "escalation_rules": [
+    "Escalate incrementally — never jump from S medium to F max.",
+    "Raise thinking first when the problem needs deeper reasoning; raise the model when it needs capacity, judgment, autonomy, context or consistency.",
+    "Before escalating after a failure, remove redundant context and fix missing evidence, tool access or environment — those are not reasoning failures.",
+    "Budget one targeted escalation after a failed attempt; at a second relevant failure narrow scope or move to a higher-capacity model.",
+    "Never use a retry policy to lower a required implementation or review floor.",
+    "Refusal loop: a weaker subagent that explicitly refuses a task as beyond its capability is re-dispatched one tier up at the same thinking level."
+  ],
+  "fan_out_minimum": {
+    "SIMPLE": 1,
+    "MODERATE": 2,
+    "COMPLEX": 3,
+    "CRITICAL": 4
+  },
+  "parallel_bounds": {
+    "min": 2,
+    "max": 6,
+    "max_active_shards": 8
+  },
+  "target_distribution": {
+    "W": [30, 40],
+    "S": [40, 50],
+    "X": [5, 12],
+    "F": [10, 15]
+  },
+  "cost_discipline": {
+    "primary_metric": "mean USD per task across the flow",
+    "healthy_band_usd_per_task": [0.4, 0.7],
+    "too_expensive_above_usd_per_task": 1.0,
+    "too_cheap_below_usd_per_task": 0.25,
+    "note": "Tier shares are a sanity check on classification, not the metric. Above ~$1.00 the router is escalating work a cheaper tier would have solved; below ~$0.25 mechanical models are probably running tasks that need judgment."
+  },
+  "caps": {
+    "fable_5_1_share_max": 0.02,
+    "terra_max_effort": "high",
+    "sol_max_effort": "high",
+    "codex_long_context_cliff_tokens": 272000,
+    "haiku_context_cap": 200000
+  },
+  "quota_degradation_ladder": [
+    {"order": 1, "give_up": "Parallel breadth on evidence gathering — serialise the fan-out.", "why": "Costs wall-clock, not correctness."},
+    {"order": 2, "give_up": "One thinking notch on dispatches that are not on a risk-floor row.", "why": "Measured: medium ≈ high output quality on routine work."},
+    {"order": 3, "give_up": "Full re-review → scoped re-review over the fix range only.", "why": "Verifies the fix without re-reading the task."},
+    {"order": 4, "give_up": "Implementation model tier where the plan carries literal code.", "why": "Transcription does not need judgment."},
+    {"order": 5, "give_up": "Batch same-shape tasks into one dispatch and review the batch as a unit.", "why": "One context build instead of N."}
+  ],
+  "never_give_up": [
+    "The independent-review seat on a risk-floor row.",
+    "The review model on money.",
+    "The review model on security.",
+    "The review model on concurrency.",
+    "The review model on migrations.",
+    "The review model on client compatibility.",
+    "Cut the implementer, never the reviewer.",
+    "Defer beats degrade: if the only way to fit the work into this window is to cut a risk-floor review, stop and wait for the window to roll."
+  ],
+  "context_rules": {
+    "worker_context_cap_tokens": 200000,
+    "worker_shard_soft_cap_tokens": 150000,
+    "long_context_cliff_tokens": 272000,
+    "rules": [
+      "Context can force escalation independent of difficulty: a mechanical task over a >150K working set is not a W dispatch on a 200K model. Route it S T0–T1 or shard the input.",
+      "Do not pay for context you do not ship — give subagents trimmed inputs.",
+      "Input past the long-context cliff reprices the whole request; shard below it whenever the task allows and treat any dispatch above it as a tier bump in the cost ledger.",
+      "Where every available model is large-context, the window floor does not apply — the constraint is pricing, not capability.",
+      "Where a model's long-context repricing is undocumented, assume it may apply and prefer the known-flat-priced option."
+    ]
+  },
+  "dispatch_metadata_fields": [
+    "harness",
+    "provider",
+    "model_requested",
+    "model_effective",
+    "effort_requested",
+    "effort_effective",
+    "role",
+    "risk",
+    "reason_for_tier",
+    "review_floor",
+    "selection_reason",
+    "price_source",
+    "price_as_of",
+    "benchmark_version",
+    "inventory_source",
+    "inventory_observed_at",
+    "availability",
+    "quota_state",
+    "window_state",
+    "acceptance_outcome"
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-orchestrator.dev/schemas/capability-contract.schema.json",
+  "title": "Portable capability and dispatch contract",
+  "type": "object",
+  "required": ["mandatory", "required", "optional", "bindings", "recommendations", "degraded", "gaps", "warnings", "unverified_acceptance", "prohibited_operations"],
+  "properties": {
+    "mandatory": { "type": "array", "items": { "$ref": "#/$defs/requirement" } },
+    "required": { "type": "array", "items": { "$ref": "#/$defs/requirement" } },
+    "optional": { "type": "array", "items": { "$ref": "#/$defs/requirement" } },
+    "bindings": { "type": "object", "additionalProperties": { "$ref": "#/$defs/binding" } },
+    "recommendations": { "type": "array", "items": { "$ref": "#/$defs/recommendation" } },
+    "degraded": { "type": "boolean" },
+    "gaps": { "type": "array", "items": { "type": "object", "required": ["capability", "reason"], "properties": { "capability": { "type": "string" }, "reason": { "type": "string" }, "recommendation": { "type": "string" }, "status": { "enum": ["blocked_pending_user", "degraded"] } } } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "unverified_acceptance": { "type": "array", "items": { "type": "string" } },
+    "prohibited_operations": { "type": "array", "items": { "$ref": "#/$defs/prohibitedOperation" } }
+  },
+  "$defs": {
+    "task": {
+      "title": "Task input",
+      "description": "Portable task classification. type is a stable task category; signals are evidence-backed labels such as web-ui, migration, android, provider-state, or deployment. requires_shell marks a phase that will run shell commands. nontrivial marks work requiring structured decision checkpoints. acceptance names observable acceptance conditions.",
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "signals": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "requires_shell": { "type": "boolean" },
+        "nontrivial": { "type": "boolean" },
+        "acceptance": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": true
+    },
+    "projectProfile": {
+      "type": "object",
+      "required": ["facts", "languages", "frameworks", "domains", "commands"],
+      "properties": {
+        "facts": { "type": "array", "items": { "type": "object", "required": ["kind", "value", "evidence", "confidence"], "properties": { "kind": { "type": "string" }, "value": { "type": "string" }, "evidence": { "type": "array", "items": { "type": "string" } }, "confidence": { "enum": ["low", "medium", "high"] } }, "additionalProperties": false } },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "frameworks": { "type": "array", "items": { "type": "string" } },
+        "domains": { "type": "array", "items": { "type": "string" } },
+        "commands": { "type": "array", "items": { "type": "object", "required": ["command", "cwd", "package_manager", "evidence", "confidence"], "properties": { "command": { "type": "string" }, "cwd": { "type": "string" }, "package_manager": { "type": "string" }, "evidence": { "type": "array", "items": { "type": "string" } }, "confidence": { "enum": ["low", "medium", "high"] } }, "additionalProperties": false } },
+        "bindings": { "type": "object", "additionalProperties": { "type": "string" } },
+        "required_capabilities": { "description": "Explicit project invariants and risk floors. A value is a capability id or a project requirement object; this field is deliberate project policy, never inferred from incidental keywords.", "type": "array", "items": { "oneOf": [{ "type": "string" }, { "$ref": "#/$defs/projectRequiredCapability" }] } }
+      },
+      "additionalProperties": true
+    },
+    "toolEntry": {
+      "type": "object",
+      "required": ["id", "kind", "capabilities", "scope", "source", "status", "permission", "evidence", "limitations"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["skill", "workflow", "mcp", "native_tool", "cli", "agent_role"] },
+        "capabilities": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "scope": { "enum": ["core", "project", "user", "harness", "task", "phase", "role"] },
+        "source": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["installed", "loaded", "callable", "denied", "unknown"] },
+        "permission": { "enum": ["read_only", "read_write", "denied", "unknown"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "operation_denied": { "type": "boolean" },
+        "denied_capabilities": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "requirement": {
+      "type": "object",
+      "required": ["id", "level", "scope", "reason", "acceptance", "status"],
+      "properties": {
+        "id": { "type": "string" },
+        "level": { "enum": ["mandatory", "required", "optional"] },
+        "scope": { "enum": ["core", "project", "task", "phase", "role"] },
+        "reason": { "type": "string" },
+        "applies_when": { "type": "object" },
+        "acceptance": { "type": "array", "items": { "type": "string" } },
+        "preferred_implementations": { "type": "array", "items": { "type": "string" } },
+        "allowed_alternatives": { "type": "array", "items": { "type": "string" } },
+        "binding": { "type": ["string", "null"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "status": { "enum": ["satisfied", "missing", "denied", "not_applicable", "blocked_pending_user", "degraded"] },
+        "provenance": { "type": "array", "items": { "type": "string" } },
+        "gap_declared_first": { "type": "boolean" },
+        "degraded_mode_after_refusal": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "projectRequiredCapability": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "scope": { "enum": ["core", "project", "task", "phase", "role"] },
+        "reason": { "type": "string" },
+        "applies_when": { "type": "object" },
+        "acceptance": { "type": "array", "items": { "type": "string" } },
+        "preferred_implementations": { "type": "array", "items": { "type": "string" } },
+        "allowed_alternatives": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "required": ["capability", "implementation", "kind", "source", "permission", "evidence"],
+      "properties": {
+        "capability": { "type": "string" },
+        "implementation": { "type": "string" },
+        "kind": { "enum": ["skill", "workflow", "mcp", "native_tool", "cli", "agent_role", "manual"] },
+        "source": { "type": "string" },
+        "permission": { "enum": ["read_only", "read_write", "denied", "unknown"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "recommendation": {
+      "type": "object",
+      "required": ["capability", "implementation", "kind", "level", "reason", "phase", "blocks"],
+      "properties": {
+        "capability": { "type": "string" },
+        "implementation": { "type": "string" },
+        "kind": { "enum": ["skill", "workflow", "mcp", "native_tool", "cli", "agent_role"] },
+        "level": { "enum": ["required", "optional"] },
+        "reason": { "type": "string" },
+        "phase": { "type": "string" },
+        "alternatives": { "type": "array", "items": { "type": "string" } },
+        "evidence_impact": { "type": "array", "items": { "type": "string" } },
+        "blocks": { "type": "boolean" },
+        "display_name": { "type": "string" },
+        "recommendation_kind": { "enum": ["product", "capability_gap"] },
+        "installable": { "type": "boolean" },
+        "source_url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
+    "dispatchContract": {
+      "title": "Child dispatch contract",
+      "description": "A child-specific projection of a CapabilityPlan. The child receives only shard-relevant facts, bindings, permissions, fallbacks, and acceptance conditions.",
+      "type": "object",
+      "required": ["shard", "routing", "required_capabilities", "optional_capabilities", "bindings", "project_evidence", "inventory_revision", "required_mcps", "required_skills", "required_workflows", "required_cli_tools", "available_tools", "permission_profile", "rtk_preflight", "fallback_plan"],
+      "properties": {
+        "shard": { "type": "object", "required": ["id", "ownership", "acceptance"], "properties": { "id": { "type": "string" }, "ownership": { "type": "array", "items": { "type": "string" } }, "acceptance": { "type": "array", "items": { "type": "string" } }, "parent_agent_id": { "type": "string" }, "child_agent_id": { "type": "string" } } },
+        "routing": { "oneOf": [{ "$ref": "#/$defs/shardRouting" }, { "type": "null" }] },
+        "required_capabilities": { "type": "array", "items": { "$ref": "#/$defs/requirement" } },
+        "optional_capabilities": { "type": "array", "items": { "$ref": "#/$defs/requirement" } },
+        "bindings": { "type": "object", "additionalProperties": { "$ref": "#/$defs/binding" } },
+        "project_evidence": { "type": "array", "items": { "type": "object" } },
+        "inventory_ref": { "type": "string" },
+        "inventory_revision": { "type": ["number", "string"] },
+        "required_mcps": { "type": "array", "items": { "type": "string" } },
+        "required_skills": { "type": "array", "items": { "type": "string" } },
+        "required_workflows": { "type": "array", "items": { "type": "string" } },
+        "required_cli_tools": { "type": "array", "items": { "type": "string" } },
+        "available_tools": { "type": "array", "items": { "type": "object" } },
+        "permission_profile": { "type": "object", "additionalProperties": { "enum": ["read_only", "read_write", "denied", "unknown"] } },
+        "rtk_preflight": { "type": "object", "required": ["required"], "properties": { "required": { "type": "boolean" }, "implementation": { "type": "string" }, "command": { "type": "string" }, "non_mutating": { "type": "boolean" } } },
+        "fallback_plan": { "type": "array", "items": { "type": "object", "required": ["capability", "implementation", "reason"], "properties": { "capability": { "type": "string" }, "implementation": { "type": "string" }, "reason": { "type": "string" } } } },
+        "not_applicable": { "type": "array", "items": { "type": "object" } },
+        "prohibited_operations": { "type": "array", "items": { "$ref": "#/$defs/prohibitedOperation" } }
+      }
+    },
+    "shardRouting": {
+      "title": "PlanShard routing block",
+      "description": "Per-shard cost-aware model selection, resolved at dispatch time against the live inventory. These thirteen field names are canonical: the same names appear in policies/dispatch.md (PlanShard schema), policies/routing.md (Dispatch metadata), protocol.md (flow construction) and lib/dispatch-contract.mjs (SHARD_ROUTING_FIELDS). model_effective is null only when the shard is blocked — the tier floor is never lowered to fit an inventory.",
+      "type": "object",
+      "required": ["pair", "tier", "thinking_level", "model_requested", "effort_requested", "model_effective", "effort_effective", "review_floor", "independent_review", "selection_reason", "inventory_revision", "price_source", "est_usd_per_task"],
+      "properties": {
+        "pair": { "type": "string" },
+        "tier": { "enum": ["W", "S", "X", "F"] },
+        "thinking_level": { "enum": ["T0", "T1", "T2", "T3", "T4", "T5"] },
+        "model_requested": { "type": ["string", "null"] },
+        "effort_requested": { "type": ["string", "null"] },
+        "model_effective": { "type": ["string", "null"] },
+        "effort_effective": { "type": ["string", "null"] },
+        "review_floor": { "type": ["string", "null"] },
+        "independent_review": { "type": "boolean" },
+        "selection_reason": { "type": "string" },
+        "inventory_revision": { "type": ["number", "string", "null"] },
+        "price_source": { "type": "string" },
+        "est_usd_per_task": { "type": ["number", "null"] },
+        "blocked": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "dispatchEvidenceReport": {
+      "title": "Child dispatch evidence report",
+      "description": "Actual phase observations. Loaded workflows and skills, tool calls, substitutions, and concrete acceptance evidence are separate facts.",
+      "type": "object",
+      "properties": {
+        "loaded_skills": { "type": "array", "items": { "type": "string" } },
+        "loaded_workflows": { "type": "array", "items": { "type": "string" } },
+        "used_capabilities": { "type": "array", "items": { "type": "string" } },
+        "used_mcps": { "description": "Every required MCP the child called, or its explicit unavailable/error result. Silent omission is a gate failure (protocol.md, policies/dispatch.md).", "type": "array", "items": { "oneOf": [{ "type": "string" }, { "type": "object", "required": ["id"], "properties": { "id": { "type": "string" }, "result": { "type": "string" }, "error": { "type": "string" } } }] } },
+        "question_for_user": { "description": "A child never asks the user directly; it returns the question here and the orchestrator batches it into one native question (policies/questions.md).", "type": "array", "items": { "type": "object", "required": ["title", "question", "options"], "properties": { "title": { "type": "string" }, "question": { "type": "string" }, "options": { "type": "array", "items": { "type": "object", "required": ["label", "cost"], "properties": { "label": { "type": "string" }, "cost": { "type": "string" }, "recommended": { "type": "boolean" } } } }, "blocks": { "type": "string" } } } },
+        "tool_calls": { "type": "array", "items": { "type": "object", "required": ["tool", "capability"], "properties": { "tool": { "type": "string" }, "capability": { "type": "string" }, "evidence": { "type": "array", "items": { "type": "string" } } } } },
+        "agent_role_invocations": { "type": "array", "items": { "type": "object", "required": ["id", "capability", "agent_id"], "properties": { "id": { "type": "string" }, "capability": { "type": "string" }, "agent_id": { "type": "string" }, "artifact": { "type": "string" }, "path": { "type": "string" } } } },
+        "substitutions": { "type": "array", "items": { "type": "object", "required": ["capability", "implementation"], "properties": { "capability": { "type": "string" }, "implementation": { "type": "string" }, "reason": { "type": "string" } } } },
+        "skipped_optional_capabilities": { "type": "array", "items": { "type": "string" } },
+        "effective_permissions": { "type": "object", "additionalProperties": { "enum": ["read_only", "read_write", "denied", "unknown"] } },
+        "acceptance_evidence": { "type": "array", "items": { "type": "object", "required": ["id"], "properties": { "id": { "type": "string" }, "type": { "type": "string" }, "command": { "type": "string" }, "exit_code": { "type": "integer" }, "artifact": { "type": "string" }, "path": { "type": "string" }, "screenshot": { "type": "string" }, "capture": { "type": "string" }, "source": { "type": "string" }, "summary": { "type": "string" }, "reviewer": { "type": "string" }, "route": { "type": "string" }, "viewport": { "type": "string" } } } }
+      }
+    },
+    "prohibitedOperation": {
+      "type": "object",
+      "required": ["capability", "tool", "reason"],
+      "properties": { "capability": { "type": "string" }, "tool": { "type": "string" }, "reason": { "type": "string" } }
+    }
+  }
+}

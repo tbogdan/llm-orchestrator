@@ -1,0 +1,82 @@
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "schema_version": 1,
+  "harness": "codex",
+  "observed_at": "2026-09-22T06:12:59.000Z",
+  "source": "active collaboration.spawn_agent schema",
+  "status": "available",
+  "models": [
+    {
+      "id": "gpt-5.6-luna",
+      "provider": "openai",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "availability": "exposed",
+      "source": "active collaboration.spawn_agent schema"
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "provider": "openai",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "availability": "exposed",
+      "source": "active collaboration.spawn_agent schema"
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "provider": "openai",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "availability": "exposed",
+      "source": "active collaboration.spawn_agent schema"
+    },
+    {
+      "id": "gpt-6-astra",
+      "provider": "openai",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "availability": "exposed",
+      "source": "active collaboration.spawn_agent schema"
+    },
+    {
+      "id": "gpt-5.5",
+      "provider": "openai",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "availability": "exposed",
+      "source": "active collaboration.spawn_agent schema"
+    }
+  ],
+  "limitations": [
+    "Historical session snapshot; refresh before another session.",
+    "Exposure does not establish quota, account tariff or local quality.",
+    "Project effort ceilings and critical review floors still apply."
+  ]
+}
