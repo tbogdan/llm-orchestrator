@@ -1,1 +1,370 @@
-{"_attribution":"llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving","version":1,"permission_profiles":{"RO":{"description":"Read-only. Investigation, evidence collection, review, telemetry.","required_access":["read","grep","glob","bash_readonly"],"rules":["Never edits files.","Bash limited to read-only/inspection commands (no writes, no migrations, no deploys).","Reports findings back to the dispatcher; does not apply fixes."]},"RW":{"description":"Read-write within an assigned bounded shard.","required_access":["read","grep","glob","edit","write","bash"],"rules":["Edits are scoped to the files/directories named in its dispatch contract.","Runs project verification for its own shard before reporting done.","Does not merge, push, or deploy unless explicitly the dispatch contract's target."]},"ORCHESTRATOR":{"description":"Plans, dispatches, and integrates; owns the overall session state.","required_access":["read","grep","glob","edit","write","bash","agent_dispatch"],"rules":["Never bypasses a mandatory capability without declaring the gap first.","Owns fan-out sizing, shard boundaries, and integration/merge order.","Runs final verification before reporting completion to the user."]}},"roles":[{"id":"orchestrator","description":"Plans work, resolves capabilities, dispatches bounded shards, integrates results.","capabilities":["orchestration.bootstrap","memory.recall","memory.checkpoint","workflow.selection","delegation.bounded"],"skills":["using-superpowers","brainstorming","dispatching-parallel-agents","subagent-driven-development"],"mcps":["sequential-thinking","mempalace"],"best_for":"Any nontrivial task needing more than one shard or a risk-floor review seat.","permission_profile":"ORCHESTRATOR","default_tier":"S T3"},{"id":"production-telemetry-collector","description":"Collects production logs/metrics/traces before an incident hypothesis is formed.","capabilities":["incident.telemetry_first"],"skills":["incident-orchestration","incident-evidence"],"mcps":[],"best_for":"Incident evidence gathering; never forms a fix on its own.","permission_profile":"RO","default_tier":"W T0-T1"},{"id":"route-data-flow-tracer","description":"Traces a request/data path across layers (frontend, API, DB, provider) read-only.","capabilities":["code.locate"],"skills":[],"mcps":["serena"],"best_for":"Symptoms that cross architectural layers.","permission_profile":"RO","default_tier":"W T0-T1"},{"id":"explore","description":"Read-only breadth search across a codebase: where something is defined, what calls it, which files are involved.","capabilities":["code.locate","tool.discovery"],"skills":[],"mcps":[],"best_for":"Broad read-only location work before a decision; never edits.","permission_profile":"RO","default_tier":"W T0-T1"},{"id":"db-concurrency-specialist","description":"Reviews transactional/locking correctness and concurrency-sensitive schema/code.","capabilities":["concurrency.review","database.schema_provenance"],"skills":[],"mcps":["db-client"],"best_for":"Race conditions, stale claims, lock ordering, transactional boundaries.","permission_profile":"RO","default_tier":"X T3","review_floor":"X T4"},{"id":"frontend-specialist","description":"Implements frontend changes that touch shared state, realtime or a native bridge, respecting shipped-client compatibility.","capabilities":["ui.design_system","test.behavioral"],"skills":["frontend-design","design-system"],"mcps":["playwright"],"best_for":"Complex frontend state, realtime surfaces and native-bridge implementation work.","permission_profile":"RW","default_tier":"S T3"},{"id":"provider-webhook-specialist","description":"Implements and reviews payment/webhook provider integrations (Stripe, Apple, Google).","capabilities":["billing.provider_evidence","push.provider_evidence","review.independent"],"skills":["stripe-best-practices"],"mcps":["billing-provider-api","push-provider-api"],"best_for":"Webhook signature/idempotency, provider state reconciliation, refund delivery.","permission_profile":"RW","default_tier":"X T2","review_floor":"X T4"},{"id":"adversarial-skeptic","description":"Independently challenges a conclusion, diagnosis, or diff before it ships.","capabilities":["review.adversarial","review.independent"],"skills":[],"mcps":[],"best_for":"Money, auth, migration, and frozen-build-shaped review seats.","permission_profile":"RO","default_tier":"S T3","review_floor":"X T4"},{"id":"test-engineer","description":"Writes and maintains behavioral/regression tests.","capabilities":["test.behavioral","workflow.tdd"],"skills":["test-driven-development"],"mcps":[],"best_for":"Coverage gaps, regression tests for bug fixes, refactor safety nets.","permission_profile":"RW","default_tier":"S T2"},{"id":"db-migration-author","description":"Sole authority for authoring SQL schema migrations.","capabilities":["config.migration_author","database.migration_checks","database.schema_provenance"],"skills":[],"mcps":["db-client"],"best_for":"Any new migration file; never hand-write one outside this role.","permission_profile":"RW","default_tier":"S T3","review_floor":"X T4"},{"id":"backend-fixer","description":"Implements backend bug fixes following systematic-debugging evidence.","capabilities":["workflow.debug","test.behavioral"],"skills":["systematic-debugging"],"mcps":[],"best_for":"Backend bug fixes with a validated hypothesis.","permission_profile":"RW","default_tier":"S T2"},{"id":"frontend-fixer","description":"Implements frontend bug fixes following systematic-debugging evidence.","capabilities":["workflow.debug","test.behavioral","ui.design_system"],"skills":["systematic-debugging"],"mcps":["playwright"],"best_for":"Frontend/UI bug fixes with a validated hypothesis.","permission_profile":"RW","default_tier":"S T2"},{"id":"code-simplifier","description":"Simplifies and clarifies recently changed code without changing behavior.","capabilities":["refactor.preservation","code.semantic_edit"],"skills":[],"mcps":["serena"],"best_for":"Post-implementation cleanup passes.","permission_profile":"RW","default_tier":"S T2"},{"id":"code-reviewer","description":"Performs the review pass at the task's review risk floor.","capabilities":["review.independent","workflow.review"],"skills":["requesting-code-review","receiving-code-review"],"mcps":[],"best_for":"The review seat on every review-gated task.","permission_profile":"RO","default_tier":"S T2","review_floor":"S T3"},{"id":"general","description":"General-purpose bounded worker for tasks that fit no specialist role.","capabilities":["workflow.selection","delegation.bounded"],"skills":[],"mcps":[],"best_for":"Bounded work with no specialist owner; escalate rather than widen scope.","permission_profile":"RW","default_tier":"S T2"}]}
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "version": 1,
+  "permission_profiles": {
+    "RO": {
+      "description": "Read-only. Investigation, evidence collection, review, telemetry.",
+      "required_access": [
+        "read",
+        "grep",
+        "glob",
+        "bash_readonly"
+      ],
+      "rules": [
+        "Never edits files.",
+        "Bash limited to read-only/inspection commands (no writes, no migrations, no deploys).",
+        "Reports findings back to the dispatcher; does not apply fixes."
+      ]
+    },
+    "RW": {
+      "description": "Read-write within an assigned bounded shard.",
+      "required_access": [
+        "read",
+        "grep",
+        "glob",
+        "edit",
+        "write",
+        "bash"
+      ],
+      "rules": [
+        "Edits are scoped to the files/directories named in its dispatch contract.",
+        "Runs project verification for its own shard before reporting done.",
+        "Does not merge, push, or deploy unless explicitly the dispatch contract's target."
+      ]
+    },
+    "ORCHESTRATOR": {
+      "description": "Plans, dispatches, and integrates; owns the overall session state.",
+      "required_access": [
+        "read",
+        "grep",
+        "glob",
+        "edit",
+        "write",
+        "bash",
+        "agent_dispatch"
+      ],
+      "rules": [
+        "Never bypasses a mandatory capability without declaring the gap first.",
+        "Owns fan-out sizing, shard boundaries, and integration/merge order.",
+        "Runs final verification before reporting completion to the user."
+      ]
+    }
+  },
+  "roles": [
+    {
+      "id": "orchestrator",
+      "description": "Plans work, resolves capabilities, dispatches bounded shards, integrates results.",
+      "capabilities": [
+        "orchestration.bootstrap",
+        "memory.recall",
+        "memory.checkpoint",
+        "workflow.selection",
+        "delegation.bounded"
+      ],
+      "skills": [
+        "using-superpowers",
+        "brainstorming",
+        "dispatching-parallel-agents",
+        "subagent-driven-development"
+      ],
+      "mcps": [
+        "sequential-thinking",
+        "mempalace"
+      ],
+      "best_for": "Any nontrivial task needing more than one shard or a risk-floor review seat.",
+      "permission_profile": "ORCHESTRATOR",
+      "default_tier": "S T3"
+    },
+    {
+      "id": "production-telemetry-collector",
+      "description": "Collects production logs/metrics/traces before an incident hypothesis is formed.",
+      "capabilities": [
+        "incident.telemetry_first"
+      ],
+      "skills": [
+        "incident-orchestration",
+        "incident-evidence"
+      ],
+      "mcps": [],
+      "best_for": "Incident evidence gathering; never forms a fix on its own.",
+      "permission_profile": "RO",
+      "default_tier": "W T0-T1"
+    },
+    {
+      "id": "route-data-flow-tracer",
+      "description": "Traces a request/data path across layers (frontend, API, DB, provider) read-only.",
+      "capabilities": [
+        "code.locate"
+      ],
+      "skills": [],
+      "mcps": [
+        "serena"
+      ],
+      "best_for": "Symptoms that cross architectural layers.",
+      "permission_profile": "RO",
+      "default_tier": "W T0-T1"
+    },
+    {
+      "id": "explore",
+      "description": "Read-only breadth search across a codebase: where something is defined, what calls it, which files are involved.",
+      "capabilities": [
+        "code.locate",
+        "tool.discovery"
+      ],
+      "skills": [],
+      "mcps": [],
+      "best_for": "Broad read-only location work before a decision; never edits.",
+      "permission_profile": "RO",
+      "default_tier": "W T0-T1"
+    },
+    {
+      "id": "db-concurrency-specialist",
+      "description": "Reviews transactional/locking correctness and concurrency-sensitive schema/code.",
+      "capabilities": [
+        "concurrency.review",
+        "database.schema_provenance"
+      ],
+      "skills": [],
+      "mcps": [
+        "db-client"
+      ],
+      "best_for": "Race conditions, stale claims, lock ordering, transactional boundaries.",
+      "permission_profile": "RO",
+      "default_tier": "X T3",
+      "review_floor": "X T4"
+    },
+    {
+      "id": "frontend-specialist",
+      "description": "Implements frontend changes that touch shared state, realtime or a native bridge, respecting shipped-client compatibility.",
+      "capabilities": [
+        "ui.design_system",
+        "test.behavioral"
+      ],
+      "skills": [
+        "frontend-design",
+        "design-system"
+      ],
+      "mcps": [
+        "playwright"
+      ],
+      "best_for": "Complex frontend state, realtime surfaces and native-bridge implementation work.",
+      "permission_profile": "RW",
+      "default_tier": "S T3"
+    },
+    {
+      "id": "provider-webhook-specialist",
+      "description": "Implements and reviews payment/webhook provider integrations (Stripe, Apple, Google).",
+      "capabilities": [
+        "billing.provider_evidence",
+        "push.provider_evidence",
+        "review.independent"
+      ],
+      "skills": [
+        "stripe-best-practices"
+      ],
+      "mcps": [
+        "billing-provider-api",
+        "push-provider-api"
+      ],
+      "best_for": "Webhook signature/idempotency, provider state reconciliation, refund delivery.",
+      "permission_profile": "RW",
+      "default_tier": "X T2",
+      "review_floor": "X T4"
+    },
+    {
+      "id": "adversarial-skeptic",
+      "description": "Independently challenges a conclusion, diagnosis, or diff before it ships.",
+      "capabilities": [
+        "review.adversarial",
+        "review.independent"
+      ],
+      "skills": [],
+      "mcps": [],
+      "best_for": "Money, auth, migration, and frozen-build-shaped review seats.",
+      "permission_profile": "RO",
+      "default_tier": "S T3",
+      "review_floor": "X T4"
+    },
+    {
+      "id": "test-engineer",
+      "description": "Writes and maintains behavioral/regression tests.",
+      "capabilities": [
+        "test.behavioral",
+        "workflow.tdd"
+      ],
+      "skills": [
+        "test-driven-development"
+      ],
+      "mcps": [],
+      "best_for": "Coverage gaps, regression tests for bug fixes, refactor safety nets.",
+      "permission_profile": "RW",
+      "default_tier": "S T2"
+    },
+    {
+      "id": "db-migration-author",
+      "description": "Sole authority for authoring SQL schema migrations.",
+      "capabilities": [
+        "config.migration_author",
+        "database.migration_checks",
+        "database.schema_provenance"
+      ],
+      "skills": [],
+      "mcps": [
+        "db-client"
+      ],
+      "best_for": "Any new migration file; never hand-write one outside this role.",
+      "permission_profile": "RW",
+      "default_tier": "S T3",
+      "review_floor": "X T4"
+    },
+    {
+      "id": "backend-fixer",
+      "description": "Implements bounded backend changes: a bug fix behind a validated hypothesis, or a feature/config change behind a failing test.",
+      "capabilities": [
+        "workflow.debug",
+        "test.behavioral"
+      ],
+      "skills": [
+        "systematic-debugging",
+        "test-driven-development"
+      ],
+      "mcps": [],
+      "best_for": "Backend implementation shards — bug fixes with a validated hypothesis, and the build phase of a feature or config flow.",
+      "permission_profile": "RW",
+      "default_tier": "S T2"
+    },
+    {
+      "id": "frontend-fixer",
+      "description": "Implements bounded frontend changes: a bug fix behind a validated hypothesis, or a feature change behind a failing test.",
+      "capabilities": [
+        "workflow.debug",
+        "test.behavioral",
+        "ui.design_system"
+      ],
+      "skills": [
+        "systematic-debugging",
+        "test-driven-development"
+      ],
+      "mcps": [
+        "playwright"
+      ],
+      "best_for": "Frontend/UI implementation shards — bug fixes with a validated hypothesis, and the build phase of a feature flow.",
+      "permission_profile": "RW",
+      "default_tier": "S T2"
+    },
+    {
+      "id": "code-simplifier",
+      "description": "Simplifies and clarifies recently changed code without changing behavior.",
+      "capabilities": [
+        "refactor.preservation",
+        "code.semantic_edit"
+      ],
+      "skills": [],
+      "mcps": [
+        "serena"
+      ],
+      "best_for": "Post-implementation cleanup passes.",
+      "permission_profile": "RW",
+      "default_tier": "S T2"
+    },
+    {
+      "id": "code-reviewer",
+      "description": "Performs the review pass at the task's review risk floor.",
+      "capabilities": [
+        "review.independent",
+        "workflow.review"
+      ],
+      "skills": [
+        "requesting-code-review",
+        "receiving-code-review"
+      ],
+      "mcps": [],
+      "best_for": "The review seat on every review-gated task.",
+      "permission_profile": "RO",
+      "default_tier": "S T2",
+      "review_floor": "S T3"
+    },
+    {
+      "id": "general",
+      "description": "General-purpose bounded worker for tasks that fit no specialist role.",
+      "capabilities": [
+        "workflow.selection",
+        "delegation.bounded"
+      ],
+      "skills": [],
+      "mcps": [],
+      "best_for": "Bounded work with no specialist owner; escalate rather than widen scope.",
+      "permission_profile": "RW",
+      "default_tier": "S T2"
+    }
+  ],
+  "role_aliases": {
+    "planner": {
+      "roles": [
+        "orchestrator"
+      ],
+      "note": "Planning is the orchestrator itself; it is never a separate dispatched agent."
+    },
+    "investigation": {
+      "roles": [
+        "route-data-flow-tracer"
+      ],
+      "note": "The read-only locate/trace pass that opens a bug fix."
+    },
+    "builders": {
+      "roles": [
+        "backend-fixer",
+        "frontend-fixer"
+      ],
+      "note": "Whichever side of the stack the shard owns."
+    },
+    "worker roles": {
+      "roles": [
+        "backend-fixer",
+        "frontend-fixer",
+        "code-simplifier"
+      ],
+      "note": "Mechanical W-tier shards."
+    },
+    "collectors": {
+      "roles": [
+        "route-data-flow-tracer",
+        "production-telemetry-collector"
+      ],
+      "note": "Evidence gathering, fanned out; research collectors use explore."
+    },
+    "synthesizer": {
+      "roles": [
+        "orchestrator"
+      ],
+      "note": "Synthesis stays with the orchestrator, which holds the whole evidence set."
+    },
+    "verifier": {
+      "roles": [
+        "test-engineer"
+      ],
+      "note": "Validation and smoke phases."
+    },
+    "domain specialist": {
+      "roles": [
+        "db-concurrency-specialist",
+        "provider-webhook-specialist",
+        "frontend-specialist"
+      ],
+      "note": "Whichever specialist owns the money, concurrency or security surface in question."
+    },
+    "log specialist": {
+      "roles": [
+        "production-telemetry-collector"
+      ],
+      "note": "Log and telemetry evidence during an incident."
+    },
+    "db/runtime specialist": {
+      "roles": [
+        "db-concurrency-specialist",
+        "route-data-flow-tracer"
+      ],
+      "note": "Database and runtime-state evidence during an incident."
+    }
+  }
+}

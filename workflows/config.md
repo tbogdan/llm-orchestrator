@@ -29,7 +29,7 @@ Infrastructure API MCPs, harness config skill.
 
 | Phase | Roles | Pair |
 |---|---|---|
-| Plan | planner | S T2 |
+| Plan | orchestrator | S T2 |
 | Standard config change | backend-fixer | S T2 |
 | DB migration (migration + provenance) | db-migration-author | S T3 |
 | Migration on money tables | db-migration-author | S T3 implementation + **X T4 review** |

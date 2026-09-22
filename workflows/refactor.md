@@ -19,13 +19,13 @@
 
 ## Available
 
-Bounded ≤2-file builder, code-explorer, traceability analysis where the project uses it.
+Bounded ≤2-file builder, the `explore` role, traceability analysis where the project uses it.
 
 ## Roles and routing by phase
 
 | Phase | Roles | Pair |
 |---|---|---|
-| Analysis + incremental plan | code-simplifier, code-explorer | S T2 |
+| Analysis + incremental plan | orchestrator, code-simplifier, explore | S T2 |
 | Coverage | test-engineer | S T2 |
 | Mechanical steps (moves, scoped extractions) | worker roles | W T0 |
 | Refactor in money or security areas | domain specialist | S T3 implementation + X T4 review |

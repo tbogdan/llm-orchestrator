@@ -28,7 +28,7 @@ no clarification is needed).
 
 | Phase | Roles | Pair |
 |---|---|---|
-| Plan / design | planner, code-architect | S T3; X T3–T4 complex; F T4 frontier |
+| Plan / design | orchestrator (plus `feature-dev-code-architect` where the harness has it) | S T3; X T3–T4 complex; F T4 frontier |
 | TDD | test-engineer | S T2 |
 | Standard implementation (API CRUD, UI components) | backend-fixer, frontend-fixer | S T2 |
 | Complex state / realtime / native bridge | frontend-specialist | S T3 |

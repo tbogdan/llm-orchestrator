@@ -211,6 +211,69 @@ test('coherence 5: agent role ids are identical across registries, routing prose
     assert.ok(agentSection.includes(role), `policies/routing.md Agent defaults is missing ${role}`);
   }
 
+  // Class 5 used to check only routing-matrix.json and the "Agent defaults"
+  // section, so `planner`, `code-architect` and `code-explorer` sat in the
+  // workflow and protocol role tables without ever being defined as roles. A
+  // name in a Roles column is a name something will be asked to dispatch, so
+  // every one of them has to resolve — either to a core role, or to a tool the
+  // preferred-tools registry defines as a harness-provided agent.
+  const externalAgents = new Set(
+    json('registries/preferred-tools.json').tools
+      .filter((tool) => tool.kind === 'agent_role')
+      .map((tool) => tool.id),
+  );
+  // A Roles cell may also use a generic function word ("builders", "verifier").
+  // Each one must resolve through registries/agent-roles.json#role_aliases to
+  // real roles, so a shard's `agent` field is always fillable from the tables.
+  const aliases = json('registries/agent-roles.json').role_aliases ?? {};
+  for (const [alias, entry] of Object.entries(aliases)) {
+    for (const role of entry.roles) {
+      assert.ok(ids.has(role), `role_aliases.${alias} resolves to unknown role ${role}`);
+    }
+  }
+  const aliasNames = new Set(Object.keys(aliases));
+  const NOT_A_ROLE = new Set(['none', 'n/a', 'any']);
+  const roleTableSources = [
+    ...readdirSync(new URL('../workflows/', import.meta.url)).map((file) => `workflows/${file}`),
+    'protocol.md',
+  ];
+  for (const source of roleTableSources) {
+    const lines = read(source).split('\n');
+    for (let index = 0; index < lines.length; index += 1) {
+      const header = lines[index];
+      if (!header.trim().startsWith('|')) continue;
+      const columns = header.split('|').map((cell) => cell.trim().toLowerCase());
+      const roleColumn = columns.findIndex((cell) => cell === 'roles' || cell === 'core agent roles');
+      if (roleColumn === -1) continue;
+      for (let row = index + 2; row < lines.length && lines[row].trim().startsWith('|'); row += 1) {
+        const cell = lines[row].split('|')[roleColumn];
+        if (cell === undefined) continue;
+        const text = cell.trim();
+        if (!text || NOT_A_ROLE.has(text.toLowerCase())) continue;
+        // "DB/runtime specialist" is one name that happens to contain a slash.
+        const cellNames = text.split(/,|→|->/).flatMap((part) => (
+          /specialist/i.test(part) ? [part] : part.split('/')
+        ));
+        for (const rawName of cellNames) {
+          const name = rawName.replace(/`/g, '').replace(/\(.*?\)/g, '').trim();
+          if (!name || NOT_A_ROLE.has(name.toLowerCase())) continue;
+          if (!/^[a-z][a-z0-9 ×-]*$/i.test(name)) continue;
+          // "evidence collectors ×N" / "research collectors" reduce to their head word.
+          const head = name
+            .replace(/\s*×\s*n$/i, '')
+            .replace(/^(evidence|research)\s+/, '')
+            .replace(/\s+under\s+.*$/i, '')   // "verifier under explicit authorization"
+            .trim()
+            .toLowerCase();
+          assert.ok(
+            ids.has(head) || externalAgents.has(head) || aliasNames.has(head),
+            `${source}: the Roles column names "${head}", which is not a role in registries/agent-roles.json, an agent_role in registries/preferred-tools.json, or a documented role_aliases entry`,
+          );
+        }
+      }
+    }
+  }
+
   // Deprecated spellings must not reappear anywhere in the core.
   const deprecated = [/(?<![-\w])telemetry-collector/, /vue-capacitor-frontend-specialist/];
   const scanned = ['SKILL.md', 'protocol.md', ...policyFiles.map((f) => `policies/${f}`), ...workflowFiles.map((f) => `workflows/${f}`), 'registries/agent-roles.json', 'registries/routing-matrix.json', 'registries/task-mappings.json', 'registries/preferred-tools.json', 'adapters/agents.mjs'];

@@ -1,1 +1,131 @@
-{"_attribution":"llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving","$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/agent-roles.schema.json","title":"Agent role roster and permission profiles","type":"object","required":["version","permission_profiles","roles"],"properties":{"version":{"type":"integer","minimum":1},"permission_profiles":{"type":"object","additionalProperties":{"type":"object","required":["description","required_access","rules"],"properties":{"description":{"type":"string"},"required_access":{"type":"array","items":{"type":"string"}},"rules":{"type":"array","items":{"type":"string"}}},"additionalProperties":false}},"roles":{"type":"array","items":{"type":"object","required":["id","description","capabilities","skills","mcps","best_for","permission_profile","default_tier"],"properties":{"id":{"type":"string","minLength":1},"description":{"type":"string"},"capabilities":{"type":"array","items":{"type":"string"}},"skills":{"type":"array","items":{"type":"string"}},"mcps":{"type":"array","items":{"type":"string"}},"best_for":{"type":"string"},"permission_profile":{"type":"string"},"default_tier":{"type":"string","pattern":"^[WSXF] T[0-5](-T[0-5])?$","description":"Tier and thinking level pair resolved by registries/routing-matrix.json."},"review_floor":{"type":"string","pattern":"^[WSXF] T[0-5](-T[0-5])?$","description":"Minimum review pair for this role domain, where policies/routing.md states one."}},"additionalProperties":false}}}}
+{
+  "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/tbogdan/llm-orchestrator/main/schemas/agent-roles.schema.json",
+  "title": "Agent role roster and permission profiles",
+  "type": "object",
+  "required": [
+    "version",
+    "permission_profiles",
+    "roles"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "permission_profiles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "description",
+          "required_access",
+          "rules"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "required_access": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "capabilities",
+          "skills",
+          "mcps",
+          "best_for",
+          "permission_profile",
+          "default_tier"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "best_for": {
+            "type": "string"
+          },
+          "permission_profile": {
+            "type": "string"
+          },
+          "default_tier": {
+            "type": "string",
+            "pattern": "^[WSXF] T[0-5](-T[0-5])?$",
+            "description": "Tier and thinking level pair resolved by registries/routing-matrix.json."
+          },
+          "review_floor": {
+            "type": "string",
+            "pattern": "^[WSXF] T[0-5](-T[0-5])?$",
+            "description": "Minimum review pair for this role domain, where policies/routing.md states one."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "role_aliases": {
+      "type": "object",
+      "description": "Generic function words used in workflow role tables, each resolving to one or more concrete role ids.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "roles",
+          "note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "roles": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

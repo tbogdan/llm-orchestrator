@@ -99,7 +99,7 @@ shards only. See [dispatch](policies/dispatch.md) and [routing](policies/routing
 | Type | Triggers | Flow | Core agent roles |
 |---|---|---|---|
 | **INCIDENT** | production error, 5xx, stuck state, webhook failure, alert | Evidence → Hypothesis → Fix → Verify → Close | production-telemetry-collector ×N + route-data-flow-tracer → adversarial-skeptic → builders → code-reviewer |
-| **FEATURE** | "build", "add", "create", "implement" | Plan → TDD → Build → Test → Review → Verify | planner → test-engineer → backend-fixer / frontend-fixer → code-reviewer |
+| **FEATURE** | "build", "add", "create", "implement" | Plan → TDD → Build → Test → Review → Verify | orchestrator → test-engineer → backend-fixer / frontend-fixer → code-reviewer |
 | **BUG_FIX** | "fix", "repair", "broken" | Reproduce → Evidence → Hypothesis → Regression → Fix → Review | investigation → test-engineer → builders → code-reviewer |
 | **REFACTOR** | "refactor", "clean up", "extract", "simplify" | Analyze → Coverage → Incremental → Review | code-simplifier → test-engineer → builders → code-reviewer |
 | **INVESTIGATION** | "why", "analyze", "how does", "debug" | Evidence → Synthesis → Challenge → Report | evidence collectors ×N → synthesizer → adversarial-skeptic |
