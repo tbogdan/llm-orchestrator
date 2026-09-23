@@ -28,12 +28,12 @@ test('both registries carry the attribution marker as the first key', () => {
   }
 });
 
-test('the shortlist is exactly 21 routable models: 11 ladder incumbents and 10 measured candidates', () => {
-  // 11 incumbents since Claude Opus 5.5 took the Claude X seat and Opus 5 stayed
-  // routable as its fallback.
+test('the shortlist is exactly 23 routable models: 13 ladder incumbents and 10 measured candidates', () => {
+  // 13 incumbents: Claude Opus 5.5, GPT-6 Sol and GPT-6 Luna took their seats and
+  // Opus 5, GPT-5.6 Sol and GPT-5.6 Luna stayed routable as their fallbacks.
   const top = loadTopModels();
-  assert.equal(top.models.length, 21);
-  assert.equal(top.models.filter((model) => model.admission === 'incumbent').length, 11);
+  assert.equal(top.models.length, 23);
+  assert.equal(top.models.filter((model) => model.admission === 'incumbent').length, 13);
   assert.equal(top.models.filter((model) => model.admission === 'candidate').length, 10);
   assert.deepEqual(
     top.models.filter((model) => model.admission === 'candidate').map((model) => model.key).sort(),
@@ -117,7 +117,7 @@ test('every pair used by the matrix has a resolution row and every measured poin
     }
     covered += 1;
   }
-  assert.equal(covered, 21, 'byte-equality must cover all 21 routable models');
+  assert.equal(covered, 23, 'byte-equality must cover all 23 routable models');
 });
 
 test('agent-roles default tiers are full pairs and agree with the routing matrix', () => {
@@ -145,7 +145,7 @@ test('a mechanical task routes to W T0-T1: Haiku with thinking off, Luna low', (
   assert.equal(claude[0].effort, null, 'Haiku has no effort parameter — thinking is off at T0/T1');
 
   const codex = rankModels({ pair: result.pair, provider: 'openai' });
-  assert.equal(codex[0].model, 'gpt-5-6-luna');
+  assert.equal(codex[0].model, 'gpt-6-luna');
   assert.equal(codex[0].effort, 'low');
 });
 
@@ -202,12 +202,12 @@ test('Terra and Sol are never ranked above `high` at any pair', () => {
   const matrix = loadMatrix();
   for (const pair of Object.keys(matrix.resolution)) {
     for (const entry of rankModels({ pair, provider: 'openai' })) {
-      if (!['gpt-5-6-terra', 'gpt-5-6-sol'].includes(entry.model)) continue;
+      if (!['gpt-5-6-terra', 'gpt-5-6-sol', 'gpt-6-sol'].includes(entry.model)) continue;
       assert.ok(['low', 'medium', 'high'].includes(entry.effort), `${entry.model} ranked at ${entry.effort} for ${pair}`);
     }
   }
   const x4 = rankModels({ pair: 'X T4', provider: 'openai' });
-  assert.equal(x4[0].model, 'gpt-5-6-sol');
+  assert.equal(x4[0].model, 'gpt-6-sol');
   assert.equal(x4[0].effort, 'high');
   assert.match(x4[0].cap_notes.join(' '), /independent second reviewer/);
 });
@@ -335,14 +335,17 @@ test('an exposed candidate in the runtime inventory is admitted on S T2 but stil
 // ---------------------------------------------------------------------------
 test('cheapestThinkingFor buys the cheapest thinking within the score budget', () => {
   const w = cheapestThinkingFor('W T3');
-  assert.equal(w.model, 'gpt-5-6-luna');
-  assert.equal(w.effort, 'xhigh', 'Luna `high` is 3 points below the W T3 baseline — outside the default 2-point budget');
+  assert.equal(w.model, 'gpt-6-luna');
+  // Baseline is the W T3 resolution row, GPT-6 Luna `xhigh` (34 @ $0.04). Its `high`
+  // (32 @ $0.03) is exactly 2 points down — inside the default budget.
+  assert.equal(w.baseline.effort, 'xhigh');
+  assert.equal(w.effort, 'high', 'Luna `high` is 2 points below the W T3 baseline — inside the default 2-point budget');
   assert.equal(w.max_score_loss, 2);
-  assert.equal(w.score_loss, 0);
-  assert.equal(w.thinking_cost_index, 18);
+  assert.equal(w.score_loss, 2);
+  assert.equal(w.thinking_cost_index, 6);
 
   const loose = cheapestThinkingFor('W T3', { maxScoreLoss: 5 });
-  assert.equal(loose.effort, 'high', 'a 5-point budget reaches the cheaper Luna `high`');
+  assert.equal(loose.effort, 'medium', 'a 5-point budget reaches the cheaper Luna `medium`');
   assert.ok(loose.est_usd_per_task < w.est_usd_per_task);
 
   const incumbentOnly = cheapestThinkingFor('S T3');
@@ -402,7 +405,7 @@ test('CLI prints parseable JSON for a classified dispatch', () => {
   assert.equal(payload.pair, 'X T3');
   assert.equal(payload.review_floor, 'X T4');
   assert.equal(payload.independent_review, true);
-  assert.equal(payload.ranked_models[0].model, 'gpt-5-6-sol');
+  assert.equal(payload.ranked_models[0].model, 'gpt-6-sol');
 });
 
 test('CLI --flow estimates a whole flow and --list enumerates the vocabulary', () => {
@@ -419,12 +422,12 @@ test('CLI --flow estimates a whole flow and --list enumerates the vocabulary', (
   assert.match(list.stdout, /Risk-floor areas:/);
 });
 
-test('CLI --list prints all 21 models with tier, admission and thinking levels', () => {
+test('CLI --list prints all 23 models with tier, admission and thinking levels', () => {
   const list = spawnSync(process.execPath, [CLI, '--list'], { encoding: 'utf8' });
   assert.equal(list.status, 0, list.stderr);
-  assert.match(list.stdout, /Models \(21\) — key \| tier \| admission \| thinking levels:/);
+  assert.match(list.stdout, /Models \(23\) — key \| tier \| admission \| thinking levels:/);
   const rows = list.stdout.split('\n').filter((line) => /^ {2}[a-z0-9-]+ \| (W|S|X|F|—) \| (incumbent|candidate) \| /.test(line));
-  assert.equal(rows.length, 21);
+  assert.equal(rows.length, 23);
   assert.equal(rows.filter((line) => line.includes('| candidate |')).length, 10);
   assert.ok(rows.some((line) => line.startsWith('  glm-5-3-flash | S | candidate | default')));
 });
@@ -461,13 +464,12 @@ test('CLI exits 1 with usage on bad arguments', () => {
 });
 
 test('Claude Opus 5.5 succeeds Opus 5 on price, with Opus 5 as the fallback', () => {
-  // X T3 on Claude: Opus 5.5 has no measured `high` point, Opus 5 does. Cost
-  // ranking alone would keep Opus 5; succession puts 5.5 first because every
-  // per-token price is at or below Opus 5's — and says so, without estimating.
+  // X T3 on Claude. Opus 5.5 is now measured at every effort (high 54 @ $1.82 vs
+  // Opus 5 48 @ $3.61), so it leads on cost alone; succession still names it.
   const rows = admittedModels(rankModels({ pair: 'X T3', provider: 'anthropic' }));
   assert.equal(rows[0].model, 'claude-opus-5-5');
   assert.equal(rows[0].effort, 'high');
-  assert.equal(rows[0].est_usd_per_task, null, 'an unmeasured effort must not borrow a $/task');
+  assert.equal(rows[0].est_usd_per_task, 1.82);
   assert.ok(rows[0].cap_notes.some((note) => note.includes('succeeds claude-opus-5')));
   assert.equal(rows[1].model, 'claude-opus-5', 'Opus 5 must stay directly behind as the fallback');
   assert.equal(rows[1].est_usd_per_task, 3.61);
@@ -477,4 +479,15 @@ test('Claude Opus 5.5 succeeds Opus 5 on price, with Opus 5 as the fallback', ()
   const fallback = admittedModels(rankModels({ pair: 'X T3', provider: 'anthropic', inventory }));
   assert.equal(fallback[0].model, 'claude-opus-5');
   assert.equal(fallback[0].est_usd_per_task, 3.61);
+});
+
+test('GPT-6 Sol and Luna take the Codex X and W seats; GPT-5.6 stays the fallback', () => {
+  const x = admittedModels(rankModels({ pair: 'X T3', provider: 'openai' }));
+  assert.equal(x[0].model, 'gpt-6-sol');
+  assert.equal(x[0].est_usd_per_task, 0.37);
+  assert.ok(x.some((row) => row.model === 'gpt-5-6-sol'), 'GPT-5.6 Sol stays routable');
+  const w = admittedModels(rankModels({ pair: 'W T2', provider: 'openai' }));
+  assert.equal(w[0].model, 'gpt-6-luna');
+  const inventory = { models: [{ id: 'gpt-5.6-sol', efforts: ['high'], availability: 'exposed' }] };
+  assert.equal(admittedModels(rankModels({ pair: 'X T3', provider: 'openai', inventory }))[0].model, 'gpt-5-6-sol', 'an inventory without GPT-6 Sol falls back');
 });

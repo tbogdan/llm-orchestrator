@@ -8,7 +8,8 @@
     "W": {
       "name": "worker",
       "responsibility": "Local, mechanical, repetitive, well-defined: code search, classification, extraction, small edits, boilerplate, simple tests, consistency checks, scoped transforms.",
-      "incumbents": {"claude": "claude-haiku-4-5", "codex": "gpt-5.6-luna"}
+      "incumbents": {"claude": "claude-haiku-4-5", "codex": "gpt-6-luna"},
+      "fallbacks": {"codex": ["gpt-5.6-luna"]}
     },
     "S": {
       "name": "standard",
@@ -18,8 +19,8 @@
     "X": {
       "name": "senior",
       "responsibility": "Hard debugging, architecture, concurrency, migrations, security, auth, payments, billing, backwards compatibility, critical code review, many invariants.",
-      "incumbents": {"claude": "claude-opus-5-5", "codex": "gpt-5.6-sol"},
-      "fallbacks": {"claude": ["claude-opus-5"]}
+      "incumbents": {"claude": "claude-opus-5-5", "codex": "gpt-6-sol"},
+      "fallbacks": {"claude": ["claude-opus-5"], "codex": ["gpt-5.6-sol"]}
     },
     "F": {
       "name": "frontier",
@@ -74,16 +75,16 @@
   "resolution": {
     "W T0-T1": {
       "claude": {"model": "claude-haiku-4-5", "effort": null, "thinking": "off"},
-      "codex": {"model": "gpt-5.6-luna", "effort": "low"}
+      "codex": {"model": "gpt-6-luna", "effort": "low"}
     },
     "W T2": {
       "claude": {"model": "claude-haiku-4-5", "effort": null, "thinking": "small budget"},
-      "codex": {"model": "gpt-5.6-luna", "effort": "medium"}
+      "codex": {"model": "gpt-6-luna", "effort": "medium"}
     },
     "W T3": {
       "claude": null,
       "claude_note": "No headroom at the Claude W tier — escalate to S.",
-      "codex": {"model": "gpt-5.6-luna", "effort": "xhigh", "alternate_effort": "max"}
+      "codex": {"model": "gpt-6-luna", "effort": "xhigh", "alternate_effort": "max"}
     },
     "S T1": {
       "claude": {"model": "claude-sonnet-5", "effort": "low"},
@@ -99,15 +100,15 @@
     },
     "X T2": {
       "claude": {"model": "claude-opus-5-5", "effort": "medium"},
-      "codex": {"model": "gpt-5.6-sol", "effort": "medium"}
+      "codex": {"model": "gpt-6-sol", "effort": "medium"}
     },
     "X T3": {
       "claude": {"model": "claude-opus-5-5", "effort": "high"},
-      "codex": {"model": "gpt-5.6-sol", "effort": "high"}
+      "codex": {"model": "gpt-6-sol", "effort": "high"}
     },
     "X T4": {
       "claude": {"model": "claude-opus-5-5", "effort": "xhigh"},
-      "codex": {"model": "gpt-5.6-sol", "effort": "high", "independent_second_reviewer": {"model": "gpt-5.6-sol", "effort": "high"}}
+      "codex": {"model": "gpt-6-sol", "effort": "high", "independent_second_reviewer": {"model": "gpt-6-sol", "effort": "high"}}
     },
     "F T3": {
       "claude": {"model": "claude-fable-5", "effort": "high"},
@@ -288,15 +289,15 @@
       {"model": "claude-fable-5-1", "effort": "high", "requires_explicit_flag": true, "note": "≤2% cap, explicit request or documented Fable 5 F-T4 failure only."}
     ],
     "codex": [
-      {"model": "gpt-5.6-luna", "effort": "low"},
-      {"model": "gpt-5.6-luna", "effort": "medium"},
-      {"model": "gpt-5.6-luna", "effort": "xhigh"},
-      {"model": "gpt-5.6-luna", "effort": "max"},
+      {"model": "gpt-6-luna", "effort": "low"},
+      {"model": "gpt-6-luna", "effort": "medium"},
+      {"model": "gpt-6-luna", "effort": "xhigh"},
+      {"model": "gpt-6-luna", "effort": "max"},
       {"model": "gpt-5.6-terra", "effort": "medium"},
       {"model": "gpt-5.6-terra", "effort": "high"},
-      {"model": "gpt-5.6-sol", "effort": "medium"},
-      {"model": "gpt-5.6-sol", "effort": "high"},
-      {"model": "gpt-5.6-sol", "effort": "high", "independent_second_reviewer": true},
+      {"model": "gpt-6-sol", "effort": "medium"},
+      {"model": "gpt-6-sol", "effort": "high"},
+      {"model": "gpt-6-sol", "effort": "high", "independent_second_reviewer": true},
       {"model": "gpt-6-astra", "effort": "high"},
       {"model": "gpt-6-astra", "effort": "xhigh"},
       {"model": "gpt-6-astra", "effort": "max", "note": "Essentially never."}

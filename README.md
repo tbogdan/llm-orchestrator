@@ -429,7 +429,7 @@ This resolves (task type, phase, role, risk, complexity, context size, harness) 
 
 ## Cost-aware routing (built in)
 
-Routing is data, not prose: `registries/routing-matrix.json` encodes the W/S/X/F tiers, the T0–T5 thinking levels with their per-provider controls (`effort` on Claude, `reasoning_effort` on Codex, budget-only on Haiku), the tier × thinking resolution table, default routing, the per-task-type flows (phase → pair → roles → gate), 21 risk-floor areas with implementation and independent-review floors, agent defaults, both escalation ladders, fan-out minimums (2 MODERATE / 3 COMPLEX / 4 CRITICAL), the target tier distribution and the quota degradation ladder. `models/top-models.json` carries the curated top 20 models — ten ladder incumbents and ten measured candidates — with their supported thinking levels, prices, measured $/task per effort and thinking-cost indices (Artificial Analysis snapshot, copied verbatim, never invented). `lib/router.mjs` resolves a dispatch; `bin/route.mjs` exposes it:
+Routing is data, not prose: `registries/routing-matrix.json` encodes the W/S/X/F tiers, the T0–T5 thinking levels with their per-provider controls (`effort` on Claude, `reasoning_effort` on Codex, budget-only on Haiku), the tier × thinking resolution table, default routing, the per-task-type flows (phase → pair → roles → gate), 21 risk-floor areas with implementation and independent-review floors, agent defaults, both escalation ladders, fan-out minimums (2 MODERATE / 3 COMPLEX / 4 CRITICAL), the target tier distribution and the quota degradation ladder. `models/top-models.json` carries the curated shortlist — thirteen ladder incumbents (three of them fallbacks for their successors) and ten measured candidates — with their supported thinking levels, prices, measured $/task per effort and thinking-cost indices (Artificial Analysis snapshot, copied verbatim, never invented). `lib/router.mjs` resolves a dispatch; `bin/route.mjs` exposes it:
 
 ```sh
 node bin/llm-orchestrator.mjs route --list                                   # vocab: task types, phases, roles, areas
@@ -448,20 +448,22 @@ Resolution order: default routing → agent default → task-flow phase → comp
 
 The CLI resolves one dispatch. Inside a flow, the same resolution runs **for every PlanShard, at dispatch time, against the live inventory** — `lib/dispatch-contract.mjs` exposes `buildShardRouting(shard, options)` for one shard, `buildShardContracts(flow, { inventory, harness, includeCandidates })` for all of them (returning the flow ledger: tier histogram against the target distribution, mean `$/task`, blocked shards, warnings), and `rerouteRemaining(flow, inventory)` when a model-not-found, a rejected effort or a quota change invalidates the inventory mid-flow — remaining shards only, so the ledger stays true. Each shard carries a `routing` block with exactly these thirteen fields: `pair`, `tier`, `thinking_level`, `model_requested`, `effort_requested`, `model_effective`, `effort_effective`, `review_floor`, `independent_review`, `selection_reason`, `inventory_revision`, `price_source`, `est_usd_per_task`. An inventory that exposes nothing eligible for the resolved tier yields `blocked: "no eligible model"` — the floor is never lowered to fit what happens to be available.
 
-### Top 20 models and thinking levels (snapshot 2026-09-22)
+### Shortlisted models and thinking levels (snapshot 2026-09-23)
 
 Incumbents hold a seat on a provider ladder. Candidates are measured but unseated: their tier is a `tier_bands` placement from the best measured Artificial Analysis score (W ≤ 37, S 38–44, X 45–50, F ≥ 51), and they rank only with `--include-candidates` or an inventory that exposes them.
 
 | Model | Provider | Ladder | Admission | Tier | Thinking levels | $ in / out per MTok |
 |---|---|---|---|---|---|---|
-| GPT-5.6 Luna | openai | codex | incumbent | W | low, medium, high, xhigh, max (reasoning_effort) | $0.2 / $1.2 |
+| GPT-6 Luna | openai | codex | incumbent | W | low, medium, high, xhigh, max (reasoning_effort) | $0.1 / $0.5 |
+| GPT-5.6 Luna | openai | codex | incumbent (fallback for GPT-6 Luna) | W | low, medium, high, xhigh, max (reasoning_effort) | $0.2 / $1.2 |
 | GPT-5.6 Terra | openai | codex | incumbent | S | low, medium, high, xhigh, max (reasoning_effort) | $2 / $12 |
-| GPT-5.6 Sol | openai | codex | incumbent | X | low, medium, high, xhigh, max (reasoning_effort) | $4 / $20 |
+| GPT-6 Sol | openai | codex | incumbent | X | low, medium, high, xhigh, max (reasoning_effort) | $2 / $10 |
+| GPT-5.6 Sol | openai | codex | incumbent (fallback for GPT-6 Sol) | X | low, medium, high, xhigh, max (reasoning_effort) | $4 / $20 |
 | GPT-6 Astra | openai | codex | incumbent | F | low, medium, high, xhigh, max (reasoning_effort) | $10 / $50 |
 | Claude Haiku 4.5 | anthropic | claude | incumbent | W | disabled, enabled (budget_tokens) | $1 / $5 |
 | Claude Sonnet 5 | anthropic | claude | incumbent | S | low, medium, high, xhigh, max (effort) | $2 / $10 |
 | Claude Opus 5 | anthropic | claude | incumbent (fallback for Opus 5.5) | X | low, medium, high, xhigh, max (effort) | $5 / $25 |
-| Claude Opus 5.5 | anthropic | claude | incumbent | X | max measured; low–xhigh supported, unmeasured (effort) | $4 / $20 |
+| Claude Opus 5.5 | anthropic | claude | incumbent | X | low, medium, high, xhigh, max (effort) | $4 / $20 |
 | Claude Fable 5 | anthropic | claude | incumbent | F | low, medium, high, xhigh, max (effort) | $10 / $50 |
 | Claude Fable 5.1 | anthropic | claude | incumbent | F | low, medium, high, xhigh, max (effort) | $10 / $50 |
 | Grok 4.7 | xai | — | incumbent | — (unrated) | low, medium, high, xhigh (reasoning_effort) | $2 / $6 |

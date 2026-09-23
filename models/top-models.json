@@ -91,6 +91,7 @@
         "share_max": null
       },
       "notes": [
+        "Fallback for GPT-6 Luna on its Codex seat: dispatched when GPT-6 Luna is not exposed by the inventory or is rolled back.",
         "Default W-tier config is `xhigh`; `max` when it stalls.",
         "Escalate to S when the task needs capacity (judgment, cross-file scope, ambiguity), not merely more reasoning depth."
       ],
@@ -98,6 +99,115 @@
         "https://artificialanalysis.ai/models/gpt-5-6-luna"
       ],
       "observed_at": "2026-09-22"
+    },
+    {
+      "key": "gpt-6-luna",
+      "display_name": "GPT-6 Luna",
+      "provider": "openai",
+      "ladder": "codex",
+      "admission": "incumbent",
+      "tier": "W",
+      "eligible_tiers": [
+        "W"
+      ],
+      "supersedes": "gpt-5-6-luna",
+      "api_ids": {
+        "codex": "gpt-6-luna",
+        "claude": null,
+        "opencode": null,
+        "kilo": null
+      },
+      "context_window": 1050000,
+      "max_output_tokens": 128000,
+      "thinking": {
+        "control": "reasoning_effort",
+        "levels": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "always_on": false,
+        "default_for_tier": "xhigh",
+        "note": "Same W policy as GPT-5.6 Luna: exempt from the Codex `high` ceiling, thinking is cheap on a small model. The API also accepts `none`, which is not measured and never routed."
+      },
+      "price": {
+        "input_usd_per_mtok": 0.1,
+        "output_usd_per_mtok": 0.5,
+        "cache_read_usd_per_mtok": 0.01,
+        "cache_write_multiplier": 1.25
+      },
+      "long_context_surcharge": {
+        "threshold_input_tokens": 272000,
+        "input_multiplier": 2,
+        "output_multiplier": 1.5,
+        "effective_input_usd_per_mtok": 0.2,
+        "effective_output_usd_per_mtok": 0.75,
+        "note": "Crossing the threshold reprices the entire request, not just the overflow."
+      },
+      "measured": {
+        "low": {
+          "score": 21,
+          "usd_per_task": 0.0045
+        },
+        "medium": {
+          "score": 29,
+          "usd_per_task": 0.02
+        },
+        "high": {
+          "score": 32,
+          "usd_per_task": 0.03
+        },
+        "xhigh": {
+          "score": 34,
+          "usd_per_task": 0.04
+        },
+        "max": {
+          "score": 37,
+          "usd_per_task": 0.07
+        }
+      },
+      "indices": {
+        "thinking_cost_index": {
+          "low": 0.9,
+          "medium": 4,
+          "high": 6,
+          "xhigh": 8,
+          "max": 14
+        },
+        "marginal_thinking": {
+          "low->medium": {
+            "delta_score": 8,
+            "cost_multiplier": 4.44
+          },
+          "medium->high": {
+            "delta_score": 3,
+            "cost_multiplier": 1.5
+          },
+          "high->xhigh": {
+            "delta_score": 2,
+            "cost_multiplier": 1.33
+          },
+          "xhigh->max": {
+            "delta_score": 3,
+            "cost_multiplier": 1.75
+          }
+        }
+      },
+      "caps": {
+        "max_effort": "max",
+        "share_max": null
+      },
+      "notes": [
+        "Successor to GPT-5.6 Luna on the Codex W seat: $0.10/$0.50 vs $0.20/$1.20 per MTok, and cheaper per completed task at every measured effort (max 37 @ $0.07 vs 37 @ $0.18). GPT-5.6 Luna stays routable as its fallback.",
+        "Default W-tier config is `xhigh`; `max` when it stalls. Escalate to S for capacity, not depth."
+      ],
+      "sources": [
+        "https://artificialanalysis.ai/models/gpt-6-luna",
+        "https://developers.openai.com/api/docs/models/gpt-6-luna"
+      ],
+      "observed_at": "2026-09-23"
     },
     {
       "key": "gpt-5-6-terra",
@@ -239,6 +349,7 @@
         }
       },
       "notes": [
+        "Fallback for GPT-6 Sol on its Codex seat: dispatched when GPT-6 Sol is not exposed by the inventory or is rolled back.",
         "Sol never above `high`; `max` is dominated and never correct.",
         "X T4 on Codex = Sol `high` + an independent Sol `high` reviewer (different agent, no forked history)."
       ],
@@ -246,6 +357,119 @@
         "https://artificialanalysis.ai/models/gpt-5-6-sol"
       ],
       "observed_at": "2026-09-22"
+    },
+    {
+      "key": "gpt-6-sol",
+      "display_name": "GPT-6 Sol",
+      "provider": "openai",
+      "ladder": "codex",
+      "admission": "incumbent",
+      "tier": "X",
+      "eligible_tiers": [
+        "X"
+      ],
+      "supersedes": "gpt-5-6-sol",
+      "api_ids": {
+        "codex": "gpt-6-sol",
+        "claude": null,
+        "opencode": null,
+        "kilo": null
+      },
+      "context_window": 1050000,
+      "max_output_tokens": 128000,
+      "thinking": {
+        "control": "reasoning_effort",
+        "levels": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "always_on": false,
+        "default_for_tier": "high",
+        "note": "Same Codex policy as GPT-5.6 Sol: ceiling `high`; T4 is `high` plus an independent second Sol `high` reviewer with no shared history. The API also accepts `none`, which is not measured and never routed."
+      },
+      "price": {
+        "input_usd_per_mtok": 2,
+        "output_usd_per_mtok": 10,
+        "cache_read_usd_per_mtok": 0.2,
+        "cache_write_multiplier": 1.25
+      },
+      "long_context_surcharge": {
+        "threshold_input_tokens": 272000,
+        "input_multiplier": 2,
+        "output_multiplier": 1.5,
+        "effective_input_usd_per_mtok": 4,
+        "effective_output_usd_per_mtok": 15,
+        "note": "Crossing the threshold reprices the entire request, not just the overflow."
+      },
+      "measured": {
+        "low": {
+          "score": 34,
+          "usd_per_task": 0.13
+        },
+        "medium": {
+          "score": 40,
+          "usd_per_task": 0.25
+        },
+        "high": {
+          "score": 43,
+          "usd_per_task": 0.37
+        },
+        "xhigh": {
+          "score": 44,
+          "usd_per_task": 0.53
+        },
+        "max": {
+          "score": 48,
+          "usd_per_task": 1.06
+        }
+      },
+      "indices": {
+        "thinking_cost_index": {
+          "low": 26,
+          "medium": 50,
+          "high": 74,
+          "xhigh": 106,
+          "max": 212
+        },
+        "marginal_thinking": {
+          "low->medium": {
+            "delta_score": 6,
+            "cost_multiplier": 1.92
+          },
+          "medium->high": {
+            "delta_score": 3,
+            "cost_multiplier": 1.48
+          },
+          "high->xhigh": {
+            "delta_score": 1,
+            "cost_multiplier": 1.43
+          },
+          "xhigh->max": {
+            "delta_score": 4,
+            "cost_multiplier": 2.0
+          }
+        }
+      },
+      "caps": {
+        "max_effort": "high",
+        "share_max": null,
+        "t4_substitution": {
+          "effort": "high",
+          "requires_independent_second_reviewer": true
+        }
+      },
+      "notes": [
+        "Successor to GPT-5.6 Sol on the Codex X seat at half the per-token price ($2/$10 vs $4/$20, permanent pricing). It is cheaper per completed task at every measured effort and scores equal or higher at each (high 43 @ $0.37 vs 42 @ $0.81); GPT-5.6 Sol stays routable as its fallback.",
+        "Its `medium` (40 @ $0.25) also dominates GPT-5.6 Terra `xhigh` (38 @ $0.63); the S seat stays Terra because an incumbent's tier is its ladder seat, not a score — see the routing note."
+      ],
+      "sources": [
+        "https://artificialanalysis.ai/models/gpt-6-sol",
+        "https://developers.openai.com/api/docs/models/gpt-6-sol"
+      ],
+      "observed_at": "2026-09-23"
     },
     {
       "key": "gpt-6-astra",
@@ -506,7 +730,9 @@
       "ladder": "claude",
       "admission": "incumbent",
       "tier": "X",
-      "eligible_tiers": ["X"],
+      "eligible_tiers": [
+        "X"
+      ],
       "supersedes": "claude-opus-5",
       "api_ids": {
         "codex": null,
@@ -518,8 +744,13 @@
       "max_output_tokens": 128000,
       "thinking": {
         "control": "effort",
-        "levels": ["low", "medium", "high", "xhigh", "max"],
-        "unmeasured_levels": ["low", "medium", "high", "xhigh"],
+        "levels": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
         "always_on": true,
         "default_for_tier": "high",
         "note": "Thinking is always on: omit `thinking` or send `adaptive`; `disabled` and `budget_tokens` return 400 at every effort. The API default effort is `medium` (one below Opus 5), so X always sets effort explicitly — `high` for T3, `xhigh` for T4. Forced `tool_choice` any/tool returns 400 — use `auto` + instruction, `strict: true`, or structured outputs. Thinking blocks are model-bound; keep transcripts append-only. Computer use only via `computer_toolset_20260801`."
@@ -533,14 +764,54 @@
       },
       "long_context_surcharge": null,
       "measured": {
-        "max": {"score": 58, "usd_per_task": 5.98}
+        "low": {
+          "score": 42,
+          "usd_per_task": 0.55
+        },
+        "medium": {
+          "score": 51,
+          "usd_per_task": 1.34
+        },
+        "high": {
+          "score": 54,
+          "usd_per_task": 1.82
+        },
+        "xhigh": {
+          "score": 56,
+          "usd_per_task": 3.46
+        },
+        "max": {
+          "score": 58,
+          "usd_per_task": 5.98
+        }
       },
-      "measurement_note": "Only `max` is published (Adaptive Reasoning, Max Effort, Default Fallback); the score includes the benchmark default fallback. low–xhigh are unmeasured, so a dispatch at them carries no $/task estimate until Artificial Analysis publishes them.",
+      "measurement_note": "All displayed scores include the benchmark default fallback and are not standalone scores.",
       "indices": {
         "thinking_cost_index": {
+          "low": 110,
+          "medium": 268,
+          "high": 364,
+          "xhigh": 692,
           "max": 1196
         },
-        "marginal_thinking": {}
+        "marginal_thinking": {
+          "low->medium": {
+            "delta_score": 9,
+            "cost_multiplier": 2.44
+          },
+          "medium->high": {
+            "delta_score": 3,
+            "cost_multiplier": 1.36
+          },
+          "high->xhigh": {
+            "delta_score": 2,
+            "cost_multiplier": 1.9
+          },
+          "xhigh->max": {
+            "delta_score": 2,
+            "cost_multiplier": 1.73
+          }
+        }
       },
       "caps": {
         "max_effort": "xhigh",
@@ -548,7 +819,7 @@
       },
       "notes": [
         "Successor to Claude Opus 5 on the Claude X seat. Every per-token price is lower (Anthropic list: input $4 vs $5, output $20 vs $25, cache read $0.20 vs $0.50, cache write $5 vs $6.25), with the same 1M context, 128K output and tokenizer, so the router ranks it ahead of Opus 5 at the same effort; Opus 5 stays routable as its fallback.",
-        "Only `max` is independently measured (Artificial Analysis 58 @ $5.98, above every other shortlisted config). Anthropic's launch table puts it above Opus 5 on every published benchmark (Terminal-Bench 4.0 66.4 vs 52.3, FrontierCode v1.1 54.4 vs 48.0, CursorBench 4.0 57.8 vs 46.6) and claims ~40% lower cost on typical workloads — vendor figures, kept as notes and never used as $/task estimates.",
+        "Measured at every effort (Artificial Analysis, with default fallback): high 54 @ $1.82 vs Opus 5 high 48 @ $3.61 — higher score at half the cost per task. Anthropic's launch table also puts it above Opus 5 on every published benchmark.",
         "Seat stays X: an incumbent tier is never re-derived from a score."
       ],
       "sources": [

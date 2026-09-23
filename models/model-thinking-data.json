@@ -1,7 +1,7 @@
 {
   "_attribution": "llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving",
   "schema_version": 1,
-  "observed_at": "2026-09-22",
+  "observed_at": "2026-09-23",
   "benchmark": {
     "name": "Artificial Analysis Intelligence Index",
     "version": "v4.3.2",
@@ -51,6 +51,42 @@
           "max",
           37,
           0.18
+        ]
+      ]
+    },
+    {
+      "key": "gpt-6-luna",
+      "display_name": "GPT-6 Luna",
+      "provider": "OpenAI",
+      "api_id": "gpt-6-luna",
+      "input_usd_per_mtok": 0.1,
+      "output_usd_per_mtok": 0.5,
+      "source": "https://artificialanalysis.ai/models/gpt-6-luna",
+      "measurements": [
+        [
+          "low",
+          21,
+          0.0045
+        ],
+        [
+          "medium",
+          29,
+          0.02
+        ],
+        [
+          "high",
+          32,
+          0.03
+        ],
+        [
+          "xhigh",
+          34,
+          0.04
+        ],
+        [
+          "max",
+          37,
+          0.07
         ]
       ]
     },
@@ -123,6 +159,42 @@
           "max",
           47,
           1.99
+        ]
+      ]
+    },
+    {
+      "key": "gpt-6-sol",
+      "display_name": "GPT-6 Sol",
+      "provider": "OpenAI",
+      "api_id": "gpt-6-sol",
+      "input_usd_per_mtok": 2,
+      "output_usd_per_mtok": 10,
+      "source": "https://artificialanalysis.ai/models/gpt-6-sol",
+      "measurements": [
+        [
+          "low",
+          34,
+          0.13
+        ],
+        [
+          "medium",
+          40,
+          0.25
+        ],
+        [
+          "high",
+          43,
+          0.37
+        ],
+        [
+          "xhigh",
+          44,
+          0.53
+        ],
+        [
+          "max",
+          48,
+          1.06
         ]
       ]
     },
@@ -242,8 +314,28 @@
       "input_usd_per_mtok": 4,
       "output_usd_per_mtok": 20,
       "source": "https://artificialanalysis.ai/models/claude-opus-5-5",
-      "measurement_note": "Only the max-effort configuration is published (Adaptive Reasoning, Max Effort, Default Fallback); low–xhigh are not measured. The score includes the benchmark default fallback.",
+      "measurement_note": "All displayed scores include the benchmark default fallback and are not standalone scores.",
       "measurements": [
+        [
+          "low",
+          42,
+          0.55
+        ],
+        [
+          "medium",
+          51,
+          1.34
+        ],
+        [
+          "high",
+          54,
+          1.82
+        ],
+        [
+          "xhigh",
+          56,
+          3.46
+        ],
         [
           "max",
           58,

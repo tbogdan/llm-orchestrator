@@ -1,7 +1,7 @@
 <!-- llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving -->
 # Model thinking matrix — AA v4.3.2 snapshot
 
-Observed: 2026-09-22. Scores and weighted USD/task costs come from the Artificial Analysis Intelligence Index v4.3.2 snapshot, not live account tariffs or a guarantee of repository outcomes. [Overall leaderboard](https://artificialanalysis.ai/leaderboards/models).
+Observed: 2026-09-23. Scores and weighted USD/task costs come from the Artificial Analysis Intelligence Index v4.3.2 snapshot, not live account tariffs or a guarantee of repository outcomes. [Overall leaderboard](https://artificialanalysis.ai/leaderboards/models).
 
 This report compares measurements. It cannot automatically select a model, establish account availability, or replace security, payment, migration, concurrency, or compatibility review floors.
 
@@ -18,6 +18,11 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | gpt-5-6-luna | GPT-5.6 Luna | high | 32 | $0.04 | 8 | 6 | +$0.02 (2.00×); +7 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-luna | GPT-5.6 Luna | xhigh | 35 | $0.09 | 18 | 6 | +$0.05 (2.25×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-luna | GPT-5.6 Luna | max | 37 | $0.18 | 36 | 6 | +$0.09 (2.00×); +2 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-luna | GPT-6 Luna | low | 21 | $0.00 | 1 | 3 | — | First measured effort for this model; no internal effort comparison. |
+| gpt-6-luna | GPT-6 Luna | medium | 29 | $0.02 | 4 | 3 | +$0.02 (4.44×); +8 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-luna | GPT-6 Luna | high | 32 | $0.03 | 6 | 3 | +$0.01 (1.50×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-luna | GPT-6 Luna | xhigh | 34 | $0.04 | 8 | 3 | +$0.01 (1.33×); +2 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-luna | GPT-6 Luna | max | 37 | $0.07 | 14 | 3 | +$0.03 (1.75×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-terra | GPT-5.6 Terra | low | 27 | $0.14 | 28 | 56 | — | First measured effort for this model; no internal effort comparison. |
 | gpt-5-6-terra | GPT-5.6 Terra | medium | 30 | $0.18 | 36 | 56 | +$0.04 (1.29×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-terra | GPT-5.6 Terra | high | 34 | $0.34 | 68 | 56 | +$0.16 (1.89×); +4 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
@@ -28,6 +33,11 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | gpt-5-6-sol | GPT-5.6 Sol | high | 42 | $0.81 | 162 | 100 | +$0.31 (1.62×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-sol | GPT-5.6 Sol | xhigh | 44 | $1.18 | 236 | 100 | +$0.37 (1.46×); +2 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-5-6-sol | GPT-5.6 Sol | max | 47 | $1.99 | 398 | 100 | +$0.81 (1.69×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-sol | GPT-6 Sol | low | 34 | $0.13 | 26 | 50 | — | First measured effort for this model; no internal effort comparison. |
+| gpt-6-sol | GPT-6 Sol | medium | 40 | $0.25 | 50 | 50 | +$0.12 (1.92×); +6 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-sol | GPT-6 Sol | high | 43 | $0.37 | 74 | 50 | +$0.12 (1.48×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-sol | GPT-6 Sol | xhigh | 44 | $0.53 | 106 | 50 | +$0.16 (1.43×); +1 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
+| gpt-6-sol | GPT-6 Sol | max | 48 | $1.06 | 212 | 50 | +$0.53 (2.00×); +4 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-6-astra | GPT-6 Astra | low | 46 | $0.82 | 164 | 250 | — | First measured effort for this model; no internal effort comparison. |
 | gpt-6-astra | GPT-6 Astra | medium | 50 | $1.54 | 308 | 250 | +$0.72 (1.88×); +4 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | gpt-6-astra | GPT-6 Astra | high | 51 | $1.73 | 346 | 250 | +$0.19 (1.12×); +1 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
@@ -43,7 +53,11 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | claude-opus-5 | Claude Opus 5 | high | 48 | $3.61 | 722 | 125 | +$1.42 (1.65×); +3 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | claude-opus-5 | Claude Opus 5 | xhigh | 50 | $4.88 | 976 | 125 | +$1.27 (1.35×); +2 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
 | claude-opus-5 | Claude Opus 5 | max | 51 | $5.86 | 1172 | 125 | +$0.98 (1.20×); +1 score | Compare only with adjacent measured effort; higher effort raises observed cost. |
-| claude-opus-5-5 | Claude Opus 5.5 | max | 58 | $5.98 | 1196 | 100 | — | Segregate from standalone cross-model comparisons. |
+| claude-opus-5-5 | Claude Opus 5.5 | low | 42 | $0.55 | 110 | 100 | — | Segregate from standalone cross-model comparisons. |
+| claude-opus-5-5 | Claude Opus 5.5 | medium | 51 | $1.34 | 268 | 100 | +$0.79 (2.44×); +9 score | Segregate from standalone cross-model comparisons. |
+| claude-opus-5-5 | Claude Opus 5.5 | high | 54 | $1.82 | 364 | 100 | +$0.48 (1.36×); +3 score | Segregate from standalone cross-model comparisons. |
+| claude-opus-5-5 | Claude Opus 5.5 | xhigh | 56 | $3.46 | 692 | 100 | +$1.64 (1.90×); +2 score | Segregate from standalone cross-model comparisons. |
+| claude-opus-5-5 | Claude Opus 5.5 | max | 58 | $5.98 | 1196 | 100 | +$2.52 (1.73×); +2 score | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | low | 47 | $2.37 | 474 | 250 | — | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | medium | 49 | $2.98 | 596 | 250 | +$0.61 (1.26×); +2 score | Segregate from standalone cross-model comparisons. |
 | claude-fable-5-1 | Claude Fable 5.1 | high | 51 | $3.91 | 782 | 250 | +$0.93 (1.31×); +2 score | Segregate from standalone cross-model comparisons. |
@@ -84,8 +98,10 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | Model family | Input USD/MTok | Output USD/MTok | Price note |
 | --- | ---: | ---: | --- |
 | GPT-5.6 Luna | $0.200 | $1.200 | AA-observed price; not a live account tariff. |
+| GPT-6 Luna | $0.100 | $0.500 | AA-observed price; not a live account tariff. |
 | GPT-5.6 Terra | $2.000 | $12.000 | AA-observed price; not a live account tariff. |
 | GPT-5.6 Sol | $4.000 | $20.000 | AA-observed price; not a live account tariff. |
+| GPT-6 Sol | $2.000 | $10.000 | AA-observed price; not a live account tariff. |
 | GPT-6 Astra | $10.000 | $50.000 | AA-observed price; not a live account tariff. |
 | Claude Sonnet 5 | $2.000 | $10.000 | AA-observed price; not a live account tariff. |
 | Claude Opus 5 | $5.000 | $25.000 | AA-observed price; not a live account tariff. |
@@ -111,8 +127,10 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 | Model family | Canonical API ID | Availability evidence |
 | --- | --- | --- |
 | GPT-5.6 Luna | `gpt-5.6-luna` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
+| GPT-6 Luna | `gpt-6-luna` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | GPT-5.6 Terra | `gpt-5.6-terra` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | GPT-5.6 Sol | `gpt-5.6-sol` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
+| GPT-6 Sol | `gpt-6-sol` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | GPT-6 Astra | `gpt-6-astra` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Sonnet 5 | `claude-sonnet-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
 | Claude Opus 5 | `claude-opus-5` | Canonical ID recorded in this dataset; exposure in a specific harness remains unverified. |
@@ -136,12 +154,14 @@ Benchmark cost index: `100 × observed benchmark cost / $0.50`; GPT-5.6 Sol medi
 ## Source and interpretation limits
 
 - [GPT-5.6 Luna](https://artificialanalysis.ai/models/gpt-5-6-luna)
+- [GPT-6 Luna](https://artificialanalysis.ai/models/gpt-6-luna)
 - [GPT-5.6 Terra](https://artificialanalysis.ai/models/gpt-5-6-terra)
 - [GPT-5.6 Sol](https://artificialanalysis.ai/models/gpt-5-6-sol)
+- [GPT-6 Sol](https://artificialanalysis.ai/models/gpt-6-sol)
 - [GPT-6 Astra](https://artificialanalysis.ai/models/gpt-6-astra)
 - [Claude Sonnet 5](https://artificialanalysis.ai/models/claude-sonnet-5)
 - [Claude Opus 5](https://artificialanalysis.ai/models/claude-opus-5)
-- [Claude Opus 5.5](https://artificialanalysis.ai/models/claude-opus-5-5) — Only the max-effort configuration is published (Adaptive Reasoning, Max Effort, Default Fallback); low–xhigh are not measured. The score includes the benchmark default fallback.
+- [Claude Opus 5.5](https://artificialanalysis.ai/models/claude-opus-5-5) — All displayed scores include the benchmark default fallback and are not standalone scores.
 - [Claude Fable 5.1](https://artificialanalysis.ai/models/claude-fable-5-1) — All displayed scores include the benchmark default fallback and are not standalone scores.
 - [Claude Fable 5](https://artificialanalysis.ai/models/claude-fable-5) — AA v4.3.2 max result uses Opus 4.8 default fallback. This legacy catalog model is not in the current leaderboard filter; segregate it from standalone cross-model comparisons.
 - [Claude Haiku 4.5](https://artificialanalysis.ai/models/claude-4-5-haiku) — Its API thinking budget is not an effort enum. The disabled score 15 is incomplete and intentionally excluded.
