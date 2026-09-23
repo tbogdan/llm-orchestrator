@@ -369,7 +369,12 @@ more instructions:
   a typed run, and counts as `trivial_overreach` in the audit. Trivial runs close at the end of the
   turn (`Stop` hook), so single-prompt sessions still reach the history. Typed runs stay open across
   turns and close when the session ends (`SessionEnd`), so an unclosed run is never lost.
-- Subagents are counted once each: resuming one (SendMessage) is not a new dispatch.
+- Subagents are counted once each: resuming one (SendMessage) is not a new dispatch. Each is also
+  classified by its agent type — one of the orchestrator's roles, or a generic agent such as
+  `general-purpose` — and the dispatch reminder names the roles of the task's flow. The audit
+  reports `role_dispatches`, `generic_dispatches` and `runs_without_roles`. The Claude Code plugin
+  ships the roles as agents (`llm-orchestrator:<role>`), so they are available without a project
+  install.
 - A run opened with two or more shards whose main thread keeps doing the work — two work calls per planned shard, no
   subagent started — gets one more sentence: dispatch the independent shards (searching for the
   Agent tool if it is deferred), or declare the chain inline with

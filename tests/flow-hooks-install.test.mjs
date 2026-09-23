@@ -129,3 +129,11 @@ test('the plugin hooks/hooks.json is exactly the rendered plugin footprint', asy
     assert.equal(timeout, 3);
   }
 });
+
+test('the plugin ships the orchestrator roles as agents, exactly as rendered', async () => {
+  const { agentFiles } = await import('../adapters/agents.mjs');
+  const { readdir } = await import('node:fs/promises');
+  const rendered = agentFiles('agents');
+  assert.deepEqual((await readdir(join(root, 'agents'))).sort(), rendered.map(({ path }) => path.slice('agents/'.length)).sort());
+  for (const { path, content } of rendered) assert.equal(await readFile(join(root, path), 'utf8'), content, `${path} drifted from the renderer`);
+});

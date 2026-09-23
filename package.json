@@ -48,6 +48,7 @@
     "NOTICE",
     "skills",
     "hooks",
+    "agents",
     ".claude-plugin"
   ],
   "scripts": {

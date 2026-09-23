@@ -26,7 +26,7 @@ description: ${role.description}
 ---
 ${MD_MARKER}
 
-Mandatory — before acting, load and follow \`.agents/skills/orchestrate/SKILL.md\`.
+Mandatory — before acting, load and follow the \`orchestrate-core\` skill (\`.agents/skills/orchestrate/SKILL.md\` in a project install). You work inside the parent's run: never open or close one.
 ${profileLine}
 Best for: ${role.best_for}
 Never bypass a mandatory capability without declaring the gap first.

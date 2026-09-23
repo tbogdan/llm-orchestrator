@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { decide, emptySession, normalizePayload, handleHook, adherenceSummary, NUDGE, dispatchNudgeFor } from '../lib/flow-gate.mjs';
 
-const DISPATCH_NUDGE = (n) => dispatchNudgeFor('llm-orchestrator', n);
+const DISPATCH_NUDGE = (n, type) => dispatchNudgeFor('llm-orchestrator', n, type);
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const CLI = join(root, 'bin', 'llm-orchestrator.mjs');
@@ -127,7 +127,7 @@ test('history lines carry ids, types, counts and times only', () => {
   const { history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE'), bash('secret-tool --token abc123'), bash('llm-orchestrator run close')]);
   const text = JSON.stringify(history);
   assert.ok(!text.includes('abc123') && !text.includes('secret-tool'), 'no tool input may reach the ledger');
-  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'opened_at', 'overreach', 'planned_shards', 'reason', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
+  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'generic_dispatches', 'opened_at', 'overreach', 'planned_shards', 'reason', 'role_dispatches', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
 });
 
 // ------------------------------------------------------------------ harness payloads
@@ -212,7 +212,7 @@ test('adherenceSummary counts runs, trivial runs, runs started outside the flow 
     { task_type: null, trivial: true, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
     { task_type: null, trivial: false, skipped_flow: true, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
   ]);
-  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, trivial_overreach: 0, below_fan_out: 0 });
+  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, trivial_overreach: 0, role_dispatches: 0, generic_dispatches: 0, runs_without_roles: 0, below_fan_out: 0 });
 });
 
 test('an event delivered twice (plugin + CLI install) is counted once', () => {
@@ -272,7 +272,7 @@ test('a planned multi-shard run with no subagent gets one dispatch nudge after s
   const nudges = outputs.filter(Boolean);
   assert.equal(nudges.length, 1, JSON.stringify(outputs));
   assert.equal(outputs.indexOf(nudges[0]), 7, 'fires on the sixth work call after run start');
-  assert.equal(nudges[0].additionalContext, DISPATCH_NUDGE(3));
+  assert.equal(nudges[0].additionalContext, DISPATCH_NUDGE(3, 'INCIDENT'));
 });
 
 test('the dispatch nudge stays silent once a subagent started, for --inline, and for single-shard runs', () => {
@@ -445,4 +445,48 @@ test('the dispatch reminder threshold is proportional: two main-thread work call
     const at = outputs.findIndex((output) => output?.kind === 'dispatch');
     assert.equal(at - 1, expectedAt, `--shards ${shards}: nudge after ${at - 1} work calls, expected ${expectedAt}`);
   }
+});
+
+// ------------------------------------------------------------------ role adherence
+test('subagents are classified as orchestrator roles or generic by agent_type', () => {
+  const { session } = run([
+    claude('UserPromptSubmit'),
+    bash('llm-orchestrator run start --type INCIDENT --shards 3'),
+    claude('SubagentStart', { agent_id: 'a1', agent_type: 'production-telemetry-collector' }),
+    claude('SubagentStart', { agent_id: 'a2', agent_type: 'llm-orchestrator:route-data-flow-tracer' }),
+    claude('SubagentStart', { agent_id: 'a3', agent_type: 'general-purpose' }),
+    claude('SubagentStart', { agent_id: 'a4', agent_type: 'Explore' }),
+    claude('SubagentStart', { agent_id: 'a5' }),
+    claude('SubagentStart', { agent_id: 'a3', agent_type: 'general-purpose' }), // resume: not counted again
+  ]);
+  assert.equal(session.run.subagents_started, 5);
+  assert.equal(session.run.role_dispatches, 2, 'plain and plugin-namespaced role ids both count');
+  assert.equal(session.run.generic_dispatches, 2, 'general-purpose and Explore are not orchestrator roles');
+});
+
+test('the dispatch reminder names the roles of the task flow', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 2'), ...work(6)]);
+  const text = outputs.find((output) => output?.kind === 'dispatch').additionalContext;
+  assert.match(text, /production-telemetry-collector, route-data-flow-tracer/);
+  assert.match(text, /not a general-purpose agent/);
+  assert.doesNotMatch(text, /orchestrator,|, orchestrator/, 'the orchestrator is the main thread, never a dispatch target');
+});
+
+test('the audit counts generic dispatches and runs that used no orchestrator role', () => {
+  const summary = adherenceSummary([
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 3, subagents_started: 3, role_dispatches: 0, generic_dispatches: 3 },
+    { task_type: 'FEATURE', trivial: false, skipped_flow: false, planned_shards: 2, subagents_started: 2, role_dispatches: 2, generic_dispatches: 0 },
+    { task_type: 'BUG_FIX', trivial: false, skipped_flow: false, planned_shards: 2, subagents_started: 2, role_dispatches: 1, generic_dispatches: 1 },
+  ]);
+  assert.equal(summary.generic_dispatches, 4);
+  assert.equal(summary.role_dispatches, 3);
+  assert.equal(summary.runs_without_roles, 1);
+});
+
+test('plugin-namespaced agent types resolve to roles in both spellings', async () => {
+  const { roleKind } = await import('../lib/flow-gate.mjs');
+  assert.equal(roleKind('llm-orchestrator:backend-fixer'), 'role');
+  assert.equal(roleKind('caveman:cavecrew-builder'), 'role');
+  assert.equal(roleKind('general-purpose'), 'generic');
+  assert.equal(roleKind(undefined), null);
 });
