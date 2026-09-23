@@ -103,11 +103,11 @@ export function nativeCommands(directory) {
   return Object.keys(descriptions).map((name) => ({
     path: `${directory}/${name}.md`,
     content: `---
-description: ${descriptions[name]}
+description: ${JSON.stringify(descriptions[name])}
 ---
 ${MD_MARKER}
 
-Load and follow \.agents/skills/orchestrate/SKILL.md before handling this request.
+Load and follow the \`orchestrate-core\` skill (or, in a project install, the bridge \`.agents/skills/orchestrate/SKILL.md\`) before handling this request.
 Mode: ${modes[name]}
 Arguments: $ARGUMENTS
 

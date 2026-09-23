@@ -49,6 +49,7 @@
     "skills",
     "hooks",
     "agents",
+    "commands",
     ".claude-plugin"
   ],
   "scripts": {

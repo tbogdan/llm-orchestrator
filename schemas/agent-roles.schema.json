@@ -54,6 +54,7 @@
           "skills",
           "mcps",
           "best_for",
+          "charter",
           "permission_profile",
           "default_tier"
         ],
@@ -79,12 +80,98 @@
           },
           "mcps": {
             "type": "array",
+            "description": "Real MCP server ids only (an id or alias of an installable MCP in registries/preferred-tools.json). A capability whose implementation the project binds goes in tool_capabilities instead.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+            }
+          },
+          "tool_capabilities": {
+            "type": "array",
+            "description": "Capability classes the role needs whose concrete tool the project binds (a database client, a provider API). Rendered as capabilities, never as a server name to search for.",
+            "items": {
+              "type": "object",
+              "required": [
+                "capability",
+                "label"
+              ],
+              "properties": {
+                "capability": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z_]*\\.[a-z][a-z_.]*$",
+                  "description": "Capability id, as used in registries/preferred-tools.json and registries/task-mappings.json."
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[^\\r\\n`]+$",
+                  "description": "Plain-language name of the capability class, e.g. 'database client'."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "best_for": {
             "type": "string"
+          },
+          "charter": {
+            "type": "object",
+            "description": "Role-specific operating charter rendered into the body of each native agent file by adapters/agents.mjs. Every string is one line of plain prose.",
+            "required": [
+              "mission",
+              "principles",
+              "done_when",
+              "never",
+              "handoff"
+            ],
+            "properties": {
+              "mission": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[^\\r\\n]+$",
+                "description": "One-sentence identity, in second person."
+              },
+              "principles": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 5,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[^\\r\\n]+$"
+                },
+                "description": "Concrete operating rules specific to this role."
+              },
+              "done_when": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 4,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[^\\r\\n]+$"
+                },
+                "description": "Observable exit criteria."
+              },
+              "never": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 4,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[^\\r\\n]+$"
+                },
+                "description": "Role-specific prohibitions."
+              },
+              "handoff": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[^\\r\\n]+$",
+                "description": "What the role returns to its parent."
+              }
+            },
+            "additionalProperties": false
           },
           "permission_profile": {
             "type": "string"

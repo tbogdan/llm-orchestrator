@@ -46,7 +46,9 @@ flow, but only by declaring it: `llm-orchestrator run start --trivial "<reason>"
 declaration and its reason are recorded; an undeclared skip is recorded as a skipped flow. A bug
 fix that needs a regression test, or any change across two or more files, is **not** trivial — it
 is a typed run. A trivial run that grows past that line gets one reminder to reopen it as a typed
-run, and the audit counts it as `trivial_overreach`. A trivial run lasts one turn.
+run, and the audit counts it as `trivial_overreach`. A trivial run lasts one turn. Skipping the
+flow never lifts edit denial: under the orchestrator agent the trivial change is dispatched to
+`general`; without an orchestrator agent it is made by the harness's default build agent.
 
 ```json
 {

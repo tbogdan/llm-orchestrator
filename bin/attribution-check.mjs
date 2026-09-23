@@ -14,7 +14,7 @@ const MJS_MARKER = `// ${CREDIT}`;
 // Test fixtures and test files themselves are excluded: they are not
 // distributed as standalone derivable source, and fixtures must stay
 // byte-exact for discovery hashing tests.
-const SCAN_DIRS = ['lib', 'bin', 'adapters', 'models', 'registries', 'schemas', 'policies', 'workflows', 'docs', 'skills'];
+const SCAN_DIRS = ['lib', 'bin', 'adapters', 'models', 'registries', 'schemas', 'policies', 'workflows', 'docs', 'skills', 'agents', 'commands'];
 const ROOT_DOCS = ['README.md', 'NOTICE', 'SKILL.md', 'protocol.md'];
 const EXCLUDED_BASENAMES = new Set(['attribution-check.mjs']);
 

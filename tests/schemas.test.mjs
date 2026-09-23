@@ -45,6 +45,19 @@ test('agent-roles.json validates against its schema', () => {
   assert.deepEqual(validate(schema('agent-roles'), readJson('registries/agent-roles.json')), []);
 });
 
+test('the agent-roles schema rejects a role without a charter, a partial charter or a malformed tool capability', () => {
+  const mutated = (mutate) => {
+    const registry = readJson('registries/agent-roles.json');
+    mutate(registry.roles.find(({ id }) => id === 'db-migration-author'));
+    return validate(schema('agent-roles'), registry);
+  };
+  assert.ok(mutated((role) => { delete role.charter; }).some((error) => /missing required key charter/.test(error)), 'a removed charter must fail validation');
+  assert.ok(mutated((role) => { delete role.charter.handoff; }).some((error) => /charter: missing required key handoff/.test(error)), 'a charter without handoff must fail validation');
+  assert.ok(mutated((role) => { delete role.best_for; }).some((error) => /missing required key best_for/.test(error)), 'a removed best_for must fail validation');
+  assert.ok(mutated((role) => { role.tool_capabilities = [{ capability: 'database.schema_provenance' }]; }).some((error) => /missing required key label/.test(error)), 'a tool capability needs a label');
+  assert.ok(mutated((role) => { role.tool_capabilities = [{ capability: 'x', label: 'y', server: 'db-client' }]; }).some((error) => /unexpected key server/.test(error)), 'a tool capability names no server');
+});
+
 test('discovered project profiles validate against the project-profile schema', async () => {
   // Every fixture, because `bindings` is null for all but one of them and the
   // schema previously only accepted an object.
@@ -126,4 +139,18 @@ test('a real flow ledger — session file and history lines — validates agains
   const lines = (await readFile(join(project, '.orchestrator-run', 'history.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line));
   assert.equal(lines.length, 2);
   for (const line of lines) assert.deepEqual(validate(ledger.$defs.historyLine, line), []);
+});
+
+test('the shared validator enforces the string and array bounds the schemas declare', () => {
+  const schema = {type: 'object', properties: {
+    id: {type: 'string', pattern: '^[a-z-]+$', minLength: 2, maxLength: 5},
+    list: {type: 'array', maxItems: 1, items: {type: 'string'}},
+  }};
+  assert.deepEqual(validate(schema, {id: 'ab', list: ['x']}), []);
+  assert.deepEqual(validate(schema, {id: 'A', list: ['x', 'y']}), [
+    '$.id: "A" does not match pattern ^[a-z-]+$',
+    '$.id: length 1 < minLength 2',
+    '$.list: 2 items > maxItems 1',
+  ]);
+  assert.deepEqual(validate(schema, {id: 'abcdef'}), ['$.id: length 6 > maxLength 5']);
 });

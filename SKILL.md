@@ -26,7 +26,9 @@ merely worse — it makes it invalid.
    Disk presence never proves callability. Never invent a server, tool or skill name.
 4. **Emit the pre-evaluation JSON** — the full object in [protocol.md](protocol.md). No dispatch,
    no edit, no shell before it exists. Then open the run:
-   `node <this skill's directory>/bin/llm-orchestrator.mjs run start --type <TASK_TYPE> --shards <n>`
+   `node <package root>/bin/llm-orchestrator.mjs run start --type <TASK_TYPE> --shards <n>`, where
+   the package root is the absolute directory you read this SKILL.md from (the path the
+   `orchestrate-core` pointer resolved to — not the `skills/orchestrate-core/` pointer directory)
    (`llm-orchestrator run start ...` when installed from npm; the PlanShard count from step 5 may be
    added once known). A task too small for the flow is declared, not skipped:
    `... run start --trivial "<reason>"`.

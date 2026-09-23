@@ -18,8 +18,14 @@ export function validate(schema, value, path = '$', errors = []) {
     if (schema.minimum !== undefined && value < schema.minimum) errors.push(`${path}: ${value} < minimum ${schema.minimum}`);
     if (schema.maximum !== undefined && value > schema.maximum) errors.push(`${path}: ${value} > maximum ${schema.maximum}`);
   }
+  if (typeof value === 'string') {
+    if (schema.pattern !== undefined && !new RegExp(schema.pattern, 'u').test(value)) errors.push(`${path}: ${JSON.stringify(value)} does not match pattern ${schema.pattern}`);
+    if (schema.minLength !== undefined && [...value].length < schema.minLength) errors.push(`${path}: length ${[...value].length} < minLength ${schema.minLength}`);
+    if (schema.maxLength !== undefined && [...value].length > schema.maxLength) errors.push(`${path}: length ${[...value].length} > maxLength ${schema.maxLength}`);
+  }
   if (Array.isArray(value)) {
     if (schema.minItems !== undefined && value.length < schema.minItems) errors.push(`${path}: ${value.length} items < minItems ${schema.minItems}`);
+    if (schema.maxItems !== undefined && value.length > schema.maxItems) errors.push(`${path}: ${value.length} items > maxItems ${schema.maxItems}`);
     if (schema.items) value.forEach((entry, index) => validate(schema.items, entry, `${path}[${index}]`, errors));
   }
   if (value && typeof value === 'object' && !Array.isArray(value)) {

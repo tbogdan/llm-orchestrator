@@ -137,3 +137,12 @@ test('the plugin ships the orchestrator roles as agents, exactly as rendered', a
   assert.deepEqual((await readdir(join(root, 'agents'))).sort(), rendered.map(({ path }) => path.slice('agents/'.length)).sort());
   for (const { path, content } of rendered) assert.equal(await readFile(join(root, path), 'utf8'), content, `${path} drifted from the renderer`);
 });
+
+test('the plugin ships the native commands (/task and friends), exactly as rendered', async () => {
+  const { nativeCommands } = await import('../adapters/commands.mjs');
+  const { readdir } = await import('node:fs/promises');
+  const rendered = nativeCommands('commands');
+  assert.ok(rendered.some(({ path }) => path === 'commands/task.md'), 'the plugin must carry /task');
+  assert.deepEqual((await readdir(join(root, 'commands'))).sort(), rendered.map(({ path }) => path.slice('commands/'.length)).sort());
+  for (const { path, content } of rendered) assert.equal(await readFile(join(root, path), 'utf8'), content, `${path} drifted from the renderer`);
+});

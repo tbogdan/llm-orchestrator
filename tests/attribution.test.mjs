@@ -34,6 +34,23 @@ test('attribution check reports a missing marker and exits non-zero', async () =
   }
 });
 
+test('attribution check scans the plugin-shipped agents/ and commands/ directories', async () => {
+  const directory = makeFixtureRoot();
+  try {
+    mkdirSync(join(directory, 'agents'), { recursive: true });
+    mkdirSync(join(directory, 'commands'), { recursive: true });
+    writeFileSync(join(directory, 'agents', 'no-marker.md'), '---\nname: x\n---\n\nBody\n');
+    writeFileSync(join(directory, 'commands', 'no-marker.md'), '---\ndescription: "x"\n---\n\nBody\n');
+    await assert.rejects(
+      execFileAsync(process.execPath, [scriptPath, '--root', directory]),
+      undefined,
+      'files missing the marker under agents/ and commands/ must fail the check',
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('--fix inserts the correct marker for .mjs (plain and shebang), .md (plain and frontmattered), and .json', async () => {
   const directory = makeFixtureRoot();
   try {

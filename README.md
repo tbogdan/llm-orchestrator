@@ -86,9 +86,16 @@ No clone, no Node invocation. Type these two in any Claude Code session:
 ```
 
 That registers the `orchestrate-core` skill straight from this repository, and `/plugin update
-llm-orchestrator@tbogdan` keeps it current. The plugin ships the skill and its resources only — it
-does not write project files. If you also want `.claude/commands/*.md`, the `.claude/agents/orchestrator.md`
-agent and the `@AGENTS.md` line in `CLAUDE.md`, run the CLI install below with `--harness claude`.
+llm-orchestrator@tbogdan` keeps it current. The plugin also ships the native commands (`/task`,
+`/task-plan`, `/task-status`, `/task-cancel`, `/task-verify`, `/incident-*`, `/orchestrate`),
+namespaced by the plugin as `/llm-orchestrator:task` and so on; the bare `/task` works too while no
+other command claims the name — but a CLI install (below) also writes a project
+`.claude/commands/task.md`, and once both are present the bare `/task` resolves ambiguously between
+them, so pick one install path, or always use the namespaced `/llm-orchestrator:task`. It does not
+write project files. If you also want `.claude/commands/*.md`, the per-role agent files under
+`.claude/agents/` (one per role in `registries/agent-roles.json`, written only with
+`--with-agents`) and the `@AGENTS.md` line in `CLAUDE.md`, run the CLI install below with
+`--harness claude`.
 
 ### Codex, OpenCode, Kilo — install from npm
 
@@ -119,8 +126,8 @@ node bin/llm-orchestrator.mjs install --project /path/to/app --harness <harness>
 
 | Harness | Fastest install | What it gives you | Reload |
 | --- | --- | --- | --- |
-| Claude Code | `/plugin install llm-orchestrator@tbogdan` | the `orchestrate-core` skill | new session |
-| Claude Code (full) | `npx llm-orchestrator install --harness claude --apply` | skill + commands + agent + `CLAUDE.md` binding | `/reload` or new session |
+| Claude Code | `/plugin install llm-orchestrator@tbogdan` | the `orchestrate-core` skill, `/llm-orchestrator:task` and the other commands, the role agents | new session |
+| Claude Code (full) | `npx llm-orchestrator install --harness claude --apply` | skill + commands (+ role agents with `--with-agents`) + `CLAUDE.md` binding | `/reload` or new session |
 | Codex | `npx llm-orchestrator install --harness codex --apply` | `AGENTS.md` span, skill, `~/.codex/prompts/*.md` | new Codex session |
 | OpenCode | `npx llm-orchestrator install --harness opencode --apply` | `.opencode/command(s)/*.md`, skill | restart `opencode` |
 | Kilo | `npx llm-orchestrator install --harness kilo --apply` | `.kilo/command(s)/*.md`, skill | restart Kilo |
@@ -278,7 +285,9 @@ example below spells the clone form, and the npm form is identical minus the `no
 
 `--package-root <dir>` (where the package's own files are read from) and `--state-root <dir>` (where the installation manifest is kept; defaults to `$XDG_STATE_HOME/portable-orchestrator` or `~/.local/state/portable-orchestrator`) exist on `install`, `uninstall` and `init` for testing and for non-standard layouts — you normally leave both alone.
 
-Multiple harnesses may share one explicitly enabled skill root using a comma-separated `--harness` value; when you don't pass `--skills-root` in that case it defaults to the shared `~/.agents/skills`, and *you* must ensure every selected harness is actually pointed at that root (see "Several harnesses at once" below). Add `--with-agents` to also render the per-harness orchestrator agent file (`.claude/agents/orchestrator.md`, `.opencode/agent/orchestrator.md`, `.kilo/agent/orchestrator.md`; no-op for Codex). Add `--link-claude` to have the installer create the `~/.claude/skills/orchestrate-core -> <skills-root>/orchestrate-core` symlink itself when Claude is one of several harnesses sharing a non-default root (idempotent; it never replaces a real directory). Restart/reload a session whose skill catalog is cached.
+Multiple harnesses may share one explicitly enabled skill root using a comma-separated `--harness` value; when you don't pass `--skills-root` in that case it defaults to the shared `~/.agents/skills`, and *you* must ensure every selected harness is actually pointed at that root (see "Several harnesses at once" below). Add `--with-agents` to also render one agent file per role in `registries/agent-roles.json` under the per-harness agent directory (`.claude/agents/`, `.opencode/agent/`, `.kilo/agent/`; no-op for Codex). Add `--link-claude` to have the installer create the `~/.claude/skills/orchestrate-core -> <skills-root>/orchestrate-core` symlink itself when Claude is one of several harnesses sharing a non-default root (idempotent; it never replaces a real directory). Restart/reload a session whose skill catalog is cached.
+
+Each rendered agent carries native frontmatter for its harness: Claude Code gets `disallowedTools: Write, Edit, NotebookEdit` on an edit-denied role (read-only roles and the orchestrator); OpenCode and Kilo get `mode: subagent` (`primary` for the orchestrator) and `permission: edit: deny` on the same roles. Edit denial does not sandbox shell writes: it removes the edit tools only, and read-only roles keep Bash for inspection; the rendered Permissions section tells them never to write through the shell, and a hard boundary needs the harness's own shell permissions. On OpenCode and Kilo, the rendered `general.md` and `explore.md` share their names with the built-in `general` and `explore` subagents and replace their prompts project-wide. That is intended: the role ids are what the flow gate classifies dispatches by, and the replacements stay bounded (`general`, RW within its owned files) or read-only (`explore`).
 
 ### Step by step
 
@@ -306,9 +315,9 @@ Same five steps for every harness; only the skills root and the reload differ.
 | Harness | `--harness` | `--skills-root` | Where things land | Reload |
 | --- | --- | --- | --- | --- |
 | Codex | `codex` | `~/.agents/skills` (default) | `AGENTS.md` span, `.agents/skills/orchestrate/SKILL.md`, `~/.codex/prompts/*.md` | new Codex session |
-| Claude / Claude Code | `claude` | `~/.claude/skills` (or symlink it to `~/.agents/skills/orchestrate-core`) | `.claude/commands/*.md`, `CLAUDE.md` gets `@AGENTS.md`, `--with-agents` → `.claude/agents/orchestrator.md` | `/reload` or new session |
-| OpenCode | `opencode` | `~/.config/opencode/skills` | `.opencode/commands/*.md`, `--with-agents` → `.opencode/agent/orchestrator.md` | restart `opencode` |
-| Kilo | `kilo` | `~/.kilo/skills` | `.kilo/commands/*.md`, `--with-agents` → `.kilo/agent/orchestrator.md` | restart Kilo / `kilo debug skill --pure` to confirm discovery |
+| Claude / Claude Code | `claude` | `~/.claude/skills` (or symlink it to `~/.agents/skills/orchestrate-core`) | `.claude/commands/*.md`, `CLAUDE.md` gets `@AGENTS.md`, `--with-agents` → one agent file per role under `.claude/agents/` | `/reload` or new session |
+| OpenCode | `opencode` | `~/.config/opencode/skills` | `.opencode/commands/*.md`, `--with-agents` → one agent file per role under `.opencode/agent/` | restart `opencode` |
+| Kilo | `kilo` | `~/.kilo/skills` | `.kilo/commands/*.md`, `--with-agents` → one agent file per role under `.kilo/agent/` | restart Kilo / `kilo debug skill --pure` to confirm discovery |
 
 Several harnesses at once: `--harness codex,claude,opencode,kilo --skills-root ~/.agents/skills`, then make sure each IDE is pointed at that root (Claude Code accepts a personal skill-folder symlink; OpenCode and Kilo need the root enabled in their config).
 
@@ -342,9 +351,9 @@ Generic rules live in `orchestrate-core`; this section only adds or tightens.
 ### Per-harness notes
 
 - **Codex** reads `AGENTS.md` plus `.agents/skills/*/SKILL.md`; custom prompts install to `~/.codex/prompts/*.md` (or `--codex-prompts-root <dir>`); subagents dispatch via `spawn_agent`, plans via `update_plan`.
-- **Claude Code** installs `.claude/commands/*.md`, `.claude/agents/*.md`, `.claude/skills/*/SKILL.md`, and adds `@AGENTS.md` to `CLAUDE.md`; subagents dispatch via the Agent tool.
-- **OpenCode** installs `.opencode/command(s)/*.md`, `.opencode/agent/*.md`, skills under `~/.config/opencode/skills`; subagents dispatch via the task tool. Sequential Thinking's permission key is `sequentialthinking_sequentialthinking`.
-- **Kilo** installs `.kilo/command(s)/*.md`, `.kilo/agent/*.md`, skills under `~/.kilo/skills`/`.kilo/skills`; Agent Manager worktrees live under `.kilo/worktrees/`. Same Sequential Thinking permission key as OpenCode.
+- **Claude Code** installs `.claude/commands/*.md`, `.claude/agents/*.md` (with `--with-agents`), `.claude/skills/*/SKILL.md`, and adds `@AGENTS.md` to `CLAUDE.md`; subagents dispatch via the Agent tool.
+- **OpenCode** installs `.opencode/command(s)/*.md`, `.opencode/agent/*.md` (with `--with-agents`), skills under `~/.config/opencode/skills`; subagents dispatch via the task tool. Sequential Thinking's permission key is `sequentialthinking_sequentialthinking`.
+- **Kilo** installs `.kilo/command(s)/*.md`, `.kilo/agent/*.md` (with `--with-agents`), skills under `~/.kilo/skills`/`.kilo/skills`; Agent Manager worktrees live under `.kilo/worktrees/`. Same Sequential Thinking permission key as OpenCode.
 
 ### Flow adherence
 
