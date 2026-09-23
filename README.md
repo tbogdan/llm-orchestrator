@@ -375,13 +375,14 @@ more instructions:
   reports `role_dispatches`, `generic_dispatches` and `runs_without_roles`. The Claude Code plugin
   ships the roles as agents (`llm-orchestrator:<role>`), so they are available without a project
   install.
-- A run opened with two or more shards whose main thread keeps doing the work — two work calls per planned shard, no
+- A run opened with two or more shards whose main thread keeps doing the work — two work calls per planned shard (one per shard in incident, investigation and research flows, whose reads *are* the shards, with one firmer follow-up if the first reminder is ignored), no
   subagent started — gets one more sentence: dispatch the independent shards (searching for the
   Agent tool if it is deferred), or declare the chain inline with
   `run start --type <T> --shards <n> --inline "stateful:<what>"`. Work is inline only while it holds
   live state a subagent cannot inherit (a browser mid-flow, an interactive shell); independent reads
-  are never inline. The audit adds `inline_declared` and `below_fan_out` (incident, investigation or
-  research runs opened with fewer than two shards).
+  are never inline. The audit adds `inline_declared`, `inline_after_nudge` (an `--inline` declared only
+  after a dispatch reminder — a retroactive justification) and `below_fan_out` (incident, investigation
+  or research runs opened with fewer than two shards).
 - Once the entrypoint is loaded, read-only discovery (reading files, `grep`, `git status`, tool
   version checks) before `run start` is SKILL.md steps 2–3, not a deviation. An edit, a write, a
   dispatch or any other shell command before the run is.

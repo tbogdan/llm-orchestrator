@@ -127,7 +127,7 @@ test('history lines carry ids, types, counts and times only', () => {
   const { history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE'), bash('secret-tool --token abc123'), bash('llm-orchestrator run close')]);
   const text = JSON.stringify(history);
   assert.ok(!text.includes('abc123') && !text.includes('secret-tool'), 'no tool input may reach the ledger');
-  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'generic_dispatches', 'opened_at', 'overreach', 'planned_shards', 'reason', 'role_dispatches', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
+  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'generic_dispatches', 'inline_after_nudge', 'opened_at', 'overreach', 'planned_shards', 'reason', 'role_dispatches', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
 });
 
 // ------------------------------------------------------------------ harness payloads
@@ -212,7 +212,7 @@ test('adherenceSummary counts runs, trivial runs, runs started outside the flow 
     { task_type: null, trivial: true, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
     { task_type: null, trivial: false, skipped_flow: true, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
   ]);
-  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, trivial_overreach: 0, role_dispatches: 0, generic_dispatches: 0, runs_without_roles: 0, below_fan_out: 0 });
+  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, inline_after_nudge: 0, trivial_overreach: 0, role_dispatches: 0, generic_dispatches: 0, runs_without_roles: 0, below_fan_out: 0 });
 });
 
 test('an event delivered twice (plugin + CLI install) is counted once', () => {
@@ -268,11 +268,11 @@ test('without the entrypoint, even a read-only grep is the start of unplanned wo
 const work = (n) => Array.from({ length: n }, (_, index) => bash(`ssh prod "grep ERROR /var/log/app.log | tail -${index + 1}"`));
 
 test('a planned multi-shard run with no subagent gets one dispatch nudge after six main-thread work calls', () => {
-  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 3'), ...work(8)]);
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE --shards 3'), ...work(8)]);
   const nudges = outputs.filter(Boolean);
   assert.equal(nudges.length, 1, JSON.stringify(outputs));
-  assert.equal(outputs.indexOf(nudges[0]), 7, 'fires on the sixth work call after run start');
-  assert.equal(nudges[0].additionalContext, DISPATCH_NUDGE(3, 'INCIDENT'));
+  assert.equal(outputs.indexOf(nudges[0]), 7, 'fires on the sixth work call after run start (2 per shard)');
+  assert.equal(nudges[0].additionalContext, DISPATCH_NUDGE(3, 'FEATURE'));
 });
 
 test('the dispatch nudge stays silent once a subagent started, for --inline, and for single-shard runs', () => {
@@ -489,4 +489,44 @@ test('plugin-namespaced agent types resolve to roles in both spellings', async (
   assert.equal(roleKind('caveman:cavecrew-builder'), 'role');
   assert.equal(roleKind('general-purpose'), 'generic');
   assert.equal(roleKind(undefined), null);
+});
+
+// ------------------------------------------------------------------ evidence flows: earlier + second reminder
+test('evidence flows get the dispatch reminder after one work call per shard', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 3'), ...work(12)]);
+  const first = outputs.findIndex((output) => output?.kind === 'dispatch');
+  assert.equal(first - 1, 3, 'INCIDENT --shards 3: first reminder after 3 work calls');
+});
+
+test('an ignored reminder on an evidence flow gets exactly one firmer follow-up', () => {
+  const { outputs, session } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INVESTIGATION --shards 2'), ...work(20)]);
+  const kinds = outputs.map((output, index) => output && [index - 1, output.kind]).filter(Boolean);
+  assert.deepEqual(kinds, [[2, 'dispatch'], [4, 'dispatch_followup']]);
+  assert.match(outputs[5].additionalContext, /reminder was not acted on/);
+  assert.equal(session.run.dispatch_nudges, 2);
+});
+
+test('non-evidence flows keep one reminder at two calls per shard, never a follow-up', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE --shards 2'), ...work(20)]);
+  assert.deepEqual(outputs.map((output, index) => output && [index - 1, output.kind]).filter(Boolean), [[4, 'dispatch']]);
+});
+
+test('no follow-up once a subagent started or the chain was declared inline', () => {
+  const dispatched = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 2'), ...work(3), claude('SubagentStart', { agent_id: 'a1', agent_type: 'production-telemetry-collector' }), ...work(10)]);
+  assert.equal(dispatched.outputs.filter((output) => output?.kind === 'dispatch_followup').length, 0);
+});
+
+test('--inline declared after a dispatch reminder is recorded as retroactive', () => {
+  const { history } = run([
+    claude('UserPromptSubmit'),
+    bash('llm-orchestrator run start --type INVESTIGATION --shards 3'),
+    ...work(4),
+    bash('llm-orchestrator run start --type INVESTIGATION --inline "stateful: evidence already read"'),
+    bash('llm-orchestrator run close'),
+  ]);
+  assert.equal(history.length, 2);
+  assert.equal(history[1].inline_after_nudge, true);
+  const upfront = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 2 --inline "stateful:ssh session"'), bash('llm-orchestrator run close')]);
+  assert.equal(upfront.history[0].inline_after_nudge, false);
+  assert.equal(adherenceSummary(history).inline_after_nudge, 1);
 });

@@ -8,7 +8,7 @@
     "run": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged", "subagent_ids", "role_dispatches", "generic_dispatches"],
+      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged", "subagent_ids", "role_dispatches", "generic_dispatches", "dispatch_nudges", "inline_after_nudge"],
       "properties": {
         "task_id": { "type": "string", "minLength": 1 },
         "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
@@ -26,7 +26,9 @@
         "overreach_nudged": { "type": "boolean" },
         "subagent_ids": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{12}$" }, "description": "Short hashes of the distinct subagents started under this run." },
         "role_dispatches": { "type": "integer", "minimum": 0, "description": "Subagents started as one of the orchestrator's roles." },
-        "generic_dispatches": { "type": "integer", "minimum": 0, "description": "Subagents started as a generic agent type (general-purpose, Explore, …)." }
+        "generic_dispatches": { "type": "integer", "minimum": 0, "description": "Subagents started as a generic agent type (general-purpose, Explore, …)." },
+        "dispatch_nudges": { "type": "integer", "minimum": 0, "maximum": 2, "description": "Dispatch reminders sent: one, or two for evidence flows whose first was ignored." },
+        "inline_after_nudge": { "type": "boolean", "description": "This run replaced one that had already received a dispatch reminder, and declared --inline: a retroactive justification." }
       }
     },
     "session": {
@@ -48,7 +50,7 @@
     "historyLine": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "inline_reason", "dispatch_nudged", "overreach", "role_dispatches", "generic_dispatches", "closed_by"],
+      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "inline_reason", "dispatch_nudged", "overreach", "inline_after_nudge", "role_dispatches", "generic_dispatches", "closed_by"],
       "properties": {
         "session": { "type": "string", "minLength": 1 },
         "task_id": { "type": ["string", "null"] },
@@ -65,6 +67,7 @@
         "inline_reason": { "type": ["string", "null"] },
         "dispatch_nudged": { "type": "boolean" },
         "overreach": { "type": "boolean", "description": "A trivial run that edited two or more files or its tests." },
+        "inline_after_nudge": { "type": "boolean" },
         "role_dispatches": { "type": "integer", "minimum": 0 },
         "generic_dispatches": { "type": "integer", "minimum": 0 },
         "closed_by": { "enum": ["run_close", "next_prompt", "succession", "turn_end", "session_end"] }
