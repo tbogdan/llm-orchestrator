@@ -8,7 +8,7 @@
     "run": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged"],
+      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged", "subagent_ids"],
       "properties": {
         "task_id": { "type": "string", "minLength": 1 },
         "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
@@ -23,7 +23,8 @@
         "dispatch_nudged": { "type": "boolean" },
         "edited_files": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{12}$" }, "description": "Short hashes of edited paths — never the paths themselves." },
         "touched_tests": { "type": "boolean" },
-        "overreach_nudged": { "type": "boolean" }
+        "overreach_nudged": { "type": "boolean" },
+        "subagent_ids": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{12}$" }, "description": "Short hashes of the distinct subagents started under this run." }
       }
     },
     "session": {
@@ -62,7 +63,7 @@
         "inline_reason": { "type": ["string", "null"] },
         "dispatch_nudged": { "type": "boolean" },
         "overreach": { "type": "boolean", "description": "A trivial run that edited two or more files or its tests." },
-        "closed_by": { "enum": ["run_close", "next_prompt", "succession", "turn_end"] }
+        "closed_by": { "enum": ["run_close", "next_prompt", "succession", "turn_end", "session_end"] }
       }
     }
   }

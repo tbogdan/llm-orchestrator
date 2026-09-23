@@ -406,3 +406,43 @@ test('a lock left by a dead handler is taken over at once, not after the stale t
   const session = JSON.parse(await readFile(join(project, '.orchestrator-run', 'sessions', 'dead.json'), 'utf8'));
   assert.equal(session.subagents_without_run, 1, 'the event must be recorded, not dropped');
 });
+
+// ------------------------------------------------------------------ findings from real Events sessions
+test('resuming a subagent (SendMessage) is not a new dispatch, even long after it started', () => {
+  // Events session 1c2aa1a8: 4 dispatches + 1 resume were counted as 5. The seen-window
+  // dedup had long evicted the first SubagentStart by the time the resume fired.
+  const filler = Array.from({ length: 80 }, (_, index) => bash(`grep ${index}`, { tool_use_id: `f${index}` }));
+  const { session } = run([
+    claude('UserPromptSubmit'),
+    bash('llm-orchestrator run start --type INCIDENT --shards 4'),
+    ...['a1', 'a2', 'a3', 'a4'].map((agent_id) => claude('SubagentStart', { agent_id })),
+    ...filler,
+    claude('SubagentStart', { agent_id: 'a1' }),
+  ]);
+  assert.equal(session.run.subagents_started, 4);
+  assert.ok(session.run.subagent_ids.every((entry) => /^[0-9a-f]{12}$/.test(entry)));
+});
+
+test('SessionEnd closes whatever run is still open, typed or trivial', () => {
+  const { history, session } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INVESTIGATION --shards 5'), claude('SessionEnd')]);
+  assert.equal(session.run, null);
+  assert.equal(history.length, 1);
+  assert.equal(history[0].closed_by, 'session_end');
+  assert.equal(history[0].task_type, 'INVESTIGATION');
+});
+
+test('below_fan_out does not flag an evidence run that did dispatch two or more subagents', () => {
+  const summary = adherenceSummary([
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 4, inline_reason: null },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
+  ]);
+  assert.equal(summary.below_fan_out, 1);
+});
+
+test('the dispatch reminder threshold is proportional: two main-thread work calls per planned shard', () => {
+  for (const [shards, expectedAt] of [[2, 4], [3, 6], [5, 10]]) {
+    const { outputs } = run([claude('UserPromptSubmit'), bash(`llm-orchestrator run start --type FEATURE --shards ${shards}`), ...work(12)]);
+    const at = outputs.findIndex((output) => output?.kind === 'dispatch');
+    assert.equal(at - 1, expectedAt, `--shards ${shards}: nudge after ${at - 1} work calls, expected ${expectedAt}`);
+  }
+});

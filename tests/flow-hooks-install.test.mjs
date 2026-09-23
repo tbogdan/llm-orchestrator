@@ -37,7 +37,7 @@ test('claude: flow hooks merge into .claude/settings.json and leave everything e
   const settings = await readJson(settingsPath);
   assert.deepEqual(settings.permissions, USER_SETTINGS.permissions);
   assert.equal(settings.hooks.PreToolUse[0].hooks[0].command, 'echo user-hook', 'the user hook stays first and unchanged');
-  for (const event of ['UserPromptSubmit', 'PreToolUse', 'SubagentStart', 'Stop']) {
+  for (const event of ['UserPromptSubmit', 'PreToolUse', 'SubagentStart', 'Stop', 'SessionEnd']) {
     assert.ok(settings.hooks[event].some((group) => group.hooks[0].command.includes(FLOW_MARKER)), `${event} flow hook missing`);
   }
   assert.equal(first.manifest.json_entries.length, 1);
@@ -122,7 +122,7 @@ test('--no-flow-hooks installs none, persists, and withdraws hooks a previous in
 test('the plugin hooks/hooks.json is exactly the rendered plugin footprint', async () => {
   assert.equal(await readFile(join(root, 'hooks', 'hooks.json'), 'utf8'), pluginHooksFile());
   const groups = extractFlowGroups(JSON.parse(pluginHooksFile()));
-  assert.deepEqual(Object.keys(groups).sort(), ['PreToolUse', 'Stop', 'SubagentStart', 'UserPromptSubmit']);
+  assert.deepEqual(Object.keys(groups).sort(), ['PreToolUse', 'SessionEnd', 'Stop', 'SubagentStart', 'UserPromptSubmit']);
   for (const [, eventGroups] of Object.entries(groups)) {
     const { command, timeout } = eventGroups[0].hooks[0];
     assert.match(command, /\|\| true # orchestrate-core:flow$/, 'a missing runtime must stay silent');
