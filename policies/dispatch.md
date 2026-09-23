@@ -282,3 +282,24 @@ Parallel work requires disjoint ownership and a real critical-path reduction; do
 beyond the minimums to satisfy an appearance of breadth, and do not fall below them when independent
 scopes exist. A serial fallback is valid only where no required independence is lost — a reviewer's
 independence is never negotiable.
+
+### A shard ends where state ends
+
+"No independent work exists" is the claim that most often excuses skipping dispatch, so it has a
+definition. Work is **inline** only while it holds live state a fresh subagent cannot inherit — a
+browser session mid-flow (cookies, a half-filled form, an open modal), an interactive SSH shell with
+context, a REPL, a booted simulator — **and** each step depends on the result of the one before.
+Everything around that chain is still sharded:
+
+- Independent reads are never inline: log, metric and database queries, code search, config
+  lookups. An SSH query that only reads is a stateless command, not a session — five of them are
+  five W-tier evidence shards, not one inline chain.
+- "Cheaper inline" is not a reason. The main thread runs at the flow's highest tier; the same reads
+  on a W-tier subagent cost less per token and keep the orchestrator's context for synthesis.
+- A tool that is not visible is not absent. On Claude Code the Agent tool can be deferred — search
+  for it (`tool.discovery`) before concluding dispatch is unavailable.
+- Declare the inline chain when opening the run: `run start --type <T> --shards <n> --inline
+  "stateful:<what state>"`. Undeclared, a planned multi-shard run whose main thread keeps working
+  with no subagent started gets one reminder from the flow hooks, and the audit counts it.
+- Name the real seam you will split at, e.g. iOS simulator vs Android emulator: independent devices
+  with independent state are parallel shards even when each one is inline inside.

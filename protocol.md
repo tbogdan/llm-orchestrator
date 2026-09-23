@@ -36,6 +36,11 @@ can target it.
 No dispatch, edit or shell command may precede this object. Opening the run
 (`llm-orchestrator run start --type <TASK_TYPE>`) follows it immediately.
 
+**Inline shards.** A run whose shards must stay in the main thread because they hold live state
+(a browser session, an interactive shell, a simulator) says so when it opens:
+`run start --type <T> --shards <n> --inline "stateful:<what>"`. Independent reads around that state
+are still dispatched — see "A shard ends where state ends" in [dispatch](policies/dispatch.md).
+
 **Trivial tasks.** A one-line, obviously scoped change (a typo, a version bump) may skip the full
 flow, but only by declaring it: `llm-orchestrator run start --trivial "<reason>"`. The
 declaration and its reason are recorded; an undeclared skip is recorded as a skipped flow.

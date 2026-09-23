@@ -8,7 +8,7 @@
     "run": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow"],
+      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged"],
       "properties": {
         "task_id": { "type": "string", "minLength": 1 },
         "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
@@ -17,7 +17,10 @@
         "opened_at": { "type": "number" },
         "planned_shards": { "type": ["integer", "null"], "minimum": 1 },
         "subagents_started": { "type": "integer", "minimum": 0 },
-        "started_outside_flow": { "type": "boolean" }
+        "started_outside_flow": { "type": "boolean" },
+        "inline_reason": { "type": ["string", "null"], "description": "Why the shards stay inline, e.g. stateful:browser — a live state no subagent can inherit." },
+        "main_work_calls": { "type": "integer", "minimum": 0 },
+        "dispatch_nudged": { "type": "boolean" }
       }
     },
     "session": {
@@ -39,7 +42,7 @@
     "historyLine": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "closed_by"],
+      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "inline_reason", "dispatch_nudged", "closed_by"],
       "properties": {
         "session": { "type": "string", "minLength": 1 },
         "task_id": { "type": ["string", "null"] },
@@ -53,6 +56,8 @@
         "subagents_started": { "type": "integer", "minimum": 0 },
         "started_outside_flow": { "type": "boolean" },
         "skipped_flow": { "type": "boolean" },
+        "inline_reason": { "type": ["string", "null"] },
+        "dispatch_nudged": { "type": "boolean" },
         "closed_by": { "enum": ["run_close", "next_prompt", "succession"] }
       }
     }

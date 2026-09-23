@@ -9,7 +9,7 @@
  */
 import { parseRunArgs, TASK_TYPES } from '../lib/flow-gate.mjs';
 
-const USAGE = `Usage: llm-orchestrator run start --type <${TASK_TYPES.join('|')}> [--shards N]
+const USAGE = `Usage: llm-orchestrator run start --type <${TASK_TYPES.join('|')}> [--shards N] [--inline "stateful:<what>"]
        llm-orchestrator run start --trivial "<reason>"
        llm-orchestrator run close`;
 
@@ -22,6 +22,6 @@ if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     process.stderr.write(`${USAGE}\n`);
     process.exitCode = 1;
   } else {
-    process.stdout.write(`${JSON.stringify({ run: parsed.action, ...(parsed.action === 'start' ? { type: parsed.type, trivial: parsed.trivial, shards: parsed.shards, reason: parsed.reason } : {}) })}\n`);
+    process.stdout.write(`${JSON.stringify({ run: parsed.action, ...(parsed.action === 'start' ? { type: parsed.type, trivial: parsed.trivial, shards: parsed.shards, reason: parsed.reason, inline: parsed.inline } : {}) })}\n`);
   }
 }

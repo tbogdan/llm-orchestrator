@@ -348,6 +348,13 @@ more instructions:
   `flow.adherence`: runs, trivial declarations, tasks that skipped the flow, runs started outside
   it, runs opened without a PlanShard count, runs that planned several shards but started no
   subagents, and runs still open.
+- A run opened with two or more shards whose main thread keeps doing the work — six work calls, no
+  subagent started — gets one more sentence: dispatch the independent shards (searching for the
+  Agent tool if it is deferred), or declare the chain inline with
+  `run start --type <T> --shards <n> --inline "stateful:<what>"`. Work is inline only while it holds
+  live state a subagent cannot inherit (a browser mid-flow, an interactive shell); independent reads
+  are never inline. The audit adds `inline_declared` and `below_fan_out` (incident, investigation or
+  research runs opened with fewer than two shards).
 - Once the entrypoint is loaded, read-only discovery (reading files, `grep`, `git status`, tool
   version checks) before `run start` is SKILL.md steps 2–3, not a deviation. An edit, a write, a
   dispatch or any other shell command before the run is.

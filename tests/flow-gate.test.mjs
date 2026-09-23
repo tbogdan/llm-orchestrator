@@ -7,7 +7,9 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { decide, emptySession, normalizePayload, handleHook, adherenceSummary, NUDGE } from '../lib/flow-gate.mjs';
+import { decide, emptySession, normalizePayload, handleHook, adherenceSummary, NUDGE, dispatchNudgeFor } from '../lib/flow-gate.mjs';
+
+const DISPATCH_NUDGE = (n) => dispatchNudgeFor('llm-orchestrator', n);
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const CLI = join(root, 'bin', 'llm-orchestrator.mjs');
@@ -125,7 +127,7 @@ test('history lines carry ids, types, counts and times only', () => {
   const { history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE'), bash('secret-tool --token abc123'), bash('llm-orchestrator run close')]);
   const text = JSON.stringify(history);
   assert.ok(!text.includes('abc123') && !text.includes('secret-tool'), 'no tool input may reach the ledger');
-  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'duration_s', 'opened_at', 'planned_shards', 'reason', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
+  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'opened_at', 'planned_shards', 'reason', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
 });
 
 // ------------------------------------------------------------------ harness payloads
@@ -210,7 +212,7 @@ test('adherenceSummary counts runs, trivial runs, runs started outside the flow 
     { task_type: null, trivial: true, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
     { task_type: null, trivial: false, skipped_flow: true, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
   ]);
-  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0 });
+  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, below_fan_out: 0 });
 });
 
 test('an event delivered twice (plugin + CLI install) is counted once', () => {
@@ -260,4 +262,70 @@ test('with the entrypoint loaded, an edit or a mutating command before run start
 test('without the entrypoint, even a read-only grep is the start of unplanned work', () => {
   const { outputs } = run([claude('UserPromptSubmit'), tool('Grep', { pattern: 'x' })]);
   assert.equal(outputs[1]?.additionalContext, NUDGE);
+});
+
+// ------------------------------------------------------------------ dispatch nudge
+const work = (n) => Array.from({ length: n }, (_, index) => bash(`ssh prod "grep ERROR /var/log/app.log | tail -${index + 1}"`));
+
+test('a planned multi-shard run with no subagent gets one dispatch nudge after six main-thread work calls', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 3'), ...work(8)]);
+  const nudges = outputs.filter(Boolean);
+  assert.equal(nudges.length, 1, JSON.stringify(outputs));
+  assert.equal(outputs.indexOf(nudges[0]), 7, 'fires on the sixth work call after run start');
+  assert.equal(nudges[0].additionalContext, DISPATCH_NUDGE(3));
+});
+
+test('the dispatch nudge stays silent once a subagent started, for --inline, and for single-shard runs', () => {
+  const dispatched = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 3'), claude('SubagentStart', { agent_id: 'a1' }), ...work(8)]);
+  assert.ok(dispatched.outputs.every((output) => output === null));
+
+  const inline = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type BUG_FIX --shards 2 --inline "stateful:browser checkout session"'), ...work(8)]);
+  assert.ok(inline.outputs.every((output) => output === null));
+  assert.equal(inline.session.run.inline_reason, 'stateful:browser checkout session');
+
+  const single = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type BUG_FIX --shards 1'), ...work(8)]);
+  assert.ok(single.outputs.every((output) => output === null));
+});
+
+test('subagent tool calls and instruction reads do not count toward the dispatch nudge', () => {
+  const { outputs } = run([
+    claude('UserPromptSubmit'),
+    bash('llm-orchestrator run start --type INCIDENT --shards 2'),
+    ...Array.from({ length: 8 }, () => bash('grep x', { agent_id: 'a9' })),
+    ...Array.from({ length: 8 }, () => tool('Read', { file_path: '/p/AGENTS.md' })),
+  ]);
+  assert.ok(outputs.every((output) => output === null));
+});
+
+test('the audit counts inline declarations and evidence runs below the fan-out minimum', () => {
+  const summary = adherenceSummary([
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
+    { task_type: 'INVESTIGATION', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0, inline_reason: null },
+    { task_type: 'RESEARCH', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: 'stateful:ssh session' },
+    { task_type: 'BUG_FIX', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 3, subagents_started: 3, inline_reason: null },
+  ]);
+  assert.equal(summary.inline_declared, 1);
+  assert.equal(summary.below_fan_out, 2, 'INCIDENT@1 and INVESTIGATION@null; the declared-inline RESEARCH run is excused');
+});
+
+test('two handlers receiving the same events concurrently record each event once', async () => {
+  // Claude Code runs matching hooks in parallel: plugin + CLI install both fire.
+  const project = await mkdtemp(join(tmpdir(), 'flow-gate-race-'));
+  await writeFile(join(project, 'AGENTS.md'), 'uses orchestrate-core\n');
+  const both = (payload) => Promise.all([0, 1].map(() => handleHook({ payload: { session_id: 'race', ...payload }, project })));
+  await both({ hook_event_name: 'UserPromptSubmit', prompt_id: 'p1' });
+  await both({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'llm-orchestrator run start --type INCIDENT --shards 2' }, tool_use_id: 't1' });
+  await both({ hook_event_name: 'SubagentStart', agent_id: 'a1' });
+  await both({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'llm-orchestrator run close' }, tool_use_id: 't2' });
+  const lines = (await readFile(join(project, '.orchestrator-run', 'history.jsonl'), 'utf8')).trim().split('\n');
+  assert.equal(lines.length, 1, lines.join('\n'));
+  assert.equal(JSON.parse(lines[0]).subagents_started, 1);
+});
+
+test('echo and printf without redirection are read-only discovery', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), tool('Skill', { skill: 'orchestrate-core' }), bash('find .agents -maxdepth 4 -type f | sort && echo --- && cat AGENTS.md')]);
+  assert.ok(outputs.every((output) => output === null));
+  const { outputs: redirected } = run([claude('UserPromptSubmit'), tool('Skill', { skill: 'orchestrate-core' }), bash('echo x > notes.md')]);
+  assert.equal(redirected[2]?.additionalContext, NUDGE);
 });

@@ -81,8 +81,30 @@ test('rejects non-normalized inventory status and blocks unknown or unavailable 
 });
 
 test('accepts the checked-in Codex availability inventory', () => {
-  const stdout = execFileSync(process.execPath, ['bin/model-thinking-report.mjs', '--available', 'models/example-model-inventory.json'], {cwd: root, encoding: 'utf8'});
+  // The CLI refuses inventories older than 24h, so running it on a checked-in
+  // snapshot made this test fail every day after the snapshot was taken. Judge
+  // the file at the moment it was observed instead of against the wall clock.
+  const inventory = JSON.parse(readFileSync(path.join(root, 'models', 'example-model-inventory.json'), 'utf8'));
+  const data = JSON.parse(readFileSync(path.join(root, 'models', 'model-thinking-data.json'), 'utf8'));
+  const observed = new Date(Date.parse(inventory.observed_at) + 60 * 60 * 1000);
+  const stdout = buildAvailableReport(data, inventory, observed);
   assert.match(stdout, /Availability comparison — runtime snapshot/);
   assert.match(stdout, /GPT-5.6 Luna \| `gpt-5.6-luna` \| low \| 21/);
   assert.match(stdout, /gpt-5.5 \| openai \| low, medium, high, xhigh \| no AA v4.3.2 dataset row/);
+});
+
+test('the CLI refuses an availability inventory older than 24 hours', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'stale-inventory-'));
+  try {
+    const inventory = JSON.parse(readFileSync(path.join(root, 'models', 'example-model-inventory.json'), 'utf8'));
+    inventory.observed_at = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const file = path.join(dir, 'inventory.json');
+    writeFileSync(file, JSON.stringify(inventory));
+    assert.throws(
+      () => execFileSync(process.execPath, ['bin/model-thinking-report.mjs', '--available', file], {cwd: root, encoding: 'utf8', stdio: 'pipe'}),
+      /stale or from the future/,
+    );
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
 });
