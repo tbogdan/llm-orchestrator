@@ -1,6 +1,22 @@
 <!-- llm-orchestrator · created by Bogdan-Gabriel Torcescu · https://www.linkedin.com/in/bogdantorcescu/ · keep this credit when copying or deriving -->
 # llm-orchestrator
 
+I got tired of babysitting long AI coding tasks — splitting work manually, keeping agents in sync, and checking whether “done” actually meant done.
+So I built LLM Orchestrator.
+
+Write /task once.
+It:
+
+→ plans the work
+
+→ shards it across parallel subagents
+
+→ gates each phase
+
+→ verifies the result before claiming it’s done
+
+Built for the kind of tasks where one agent and one context window simply aren’t enough.
+
 ## License
 
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). Use, copy, adapt and redistribute freely, including commercially, as long as you credit **Bogdan-Gabriel Torcescu** (https://www.linkedin.com/in/bogdantorcescu/), link the license, note your changes and keep the embedded attribution markers. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
