@@ -365,8 +365,8 @@ more instructions:
   it, runs opened without a PlanShard count, runs that planned several shards but started no
   subagents, and runs still open.
 - Trivial is the narrow exception — a one-line change such as a typo or a version bump. A run
-  declared trivial that then edits a second file, touches tests, or keeps working past eight calls
-  (an investigation is not trivial) gets one reminder to reopen it as
+  declared trivial that then edits a second file, touches tests, queries a live source twice, or keeps
+  working past eight calls (an investigation is not trivial) gets one reminder to reopen it as
   a typed run, and counts as `trivial_overreach` in the audit. Trivial runs close at the end of the
   turn (`Stop` hook), so single-prompt sessions still reach the history. Typed runs stay open across
   turns and close when the session ends (`SessionEnd`), so an unclosed run is never lost.

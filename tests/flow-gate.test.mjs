@@ -584,3 +584,11 @@ test('live sources are recognised: ssh, remote databases, cluster and cloud CLIs
   }
   for (const command of ['cat logs/api.log', 'grep ERROR logs/*.log', 'node --test', 'git log']) assert.ok(!isLiveSource(command), command);
 });
+
+test('a trivial run counts its live calls, and querying production twice is not trivial', () => {
+  const { outputs, session } = run([claude('UserPromptSubmit'), TRIVIAL, ...live(3)]);
+  assert.equal(session.run.live_calls, 3);
+  const at = outputs.findIndex((output) => output?.kind === 'overreach');
+  assert.equal(at - 1, 2, 'fires on the second live call, long before eight work calls');
+  assert.match(outputs[at].additionalContext, /live/);
+});
