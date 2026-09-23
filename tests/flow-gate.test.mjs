@@ -385,3 +385,24 @@ test('the audit counts trivial overreach', () => {
   ]);
   assert.equal(summary.trivial_overreach, 1);
 });
+
+test('subagent tool calls never touch the ledger, so they cannot contend for the session lock', async () => {
+  const project = await mkdtemp(join(tmpdir(), 'flow-gate-subagent-io-'));
+  await writeFile(join(project, 'AGENTS.md'), 'uses orchestrate-core\n');
+  const out = await handleHook({ payload: { session_id: 'sub', hook_event_name: 'PreToolUse', agent_id: 'a1', tool_name: 'Edit', tool_input: { file_path: '/p/x' } }, project });
+  assert.equal(out, null);
+  await assert.rejects(readFile(join(project, '.orchestrator-run', 'sessions', 'sub.json'), 'utf8'), 'a subagent tool call must not create or write session state');
+});
+
+test('a lock left by a dead handler is taken over at once, not after the stale timeout', async () => {
+  const project = await mkdtemp(join(tmpdir(), 'flow-gate-deadlock-'));
+  await writeFile(join(project, 'AGENTS.md'), 'uses orchestrate-core\n');
+  const lock = join(project, '.orchestrator-run', 'sessions', 'dead.json.lock');
+  await mkdir(lock, { recursive: true });
+  await writeFile(join(lock, 'owner'), '999999\n'); // no such process
+  const started = Date.now();
+  await handleHook({ payload: { session_id: 'dead', hook_event_name: 'SubagentStart', agent_id: 'a1' }, project });
+  assert.ok(Date.now() - started < 1000, `took ${Date.now() - started}ms`);
+  const session = JSON.parse(await readFile(join(project, '.orchestrator-run', 'sessions', 'dead.json'), 'utf8'));
+  assert.equal(session.subagents_without_run, 1, 'the event must be recorded, not dropped');
+});
