@@ -127,7 +127,7 @@ test('history lines carry ids, types, counts and times only', () => {
   const { history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE'), bash('secret-tool --token abc123'), bash('llm-orchestrator run close')]);
   const text = JSON.stringify(history);
   assert.ok(!text.includes('abc123') && !text.includes('secret-tool'), 'no tool input may reach the ledger');
-  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'opened_at', 'planned_shards', 'reason', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
+  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'opened_at', 'overreach', 'planned_shards', 'reason', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
 });
 
 // ------------------------------------------------------------------ harness payloads
@@ -212,7 +212,7 @@ test('adherenceSummary counts runs, trivial runs, runs started outside the flow 
     { task_type: null, trivial: true, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
     { task_type: null, trivial: false, skipped_flow: true, started_outside_flow: false, planned_shards: null, subagents_started: 0 },
   ]);
-  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, below_fan_out: 0 });
+  assert.deepEqual(summary, { tasks: 4, runs: 3, trivial: 1, skipped_flow: 1, started_outside_flow: 1, planned_but_not_dispatched: 1, runs_without_plan: 0, inline_declared: 0, trivial_overreach: 0, below_fan_out: 0 });
 });
 
 test('an event delivered twice (plugin + CLI install) is counted once', () => {
@@ -328,4 +328,60 @@ test('echo and printf without redirection are read-only discovery', () => {
   assert.ok(outputs.every((output) => output === null));
   const { outputs: redirected } = run([claude('UserPromptSubmit'), tool('Skill', { skill: 'orchestrate-core' }), bash('echo x > notes.md')]);
   assert.equal(redirected[2]?.additionalContext, NUDGE);
+});
+
+// ------------------------------------------------------------------ trivial overreach + turn end
+const edit = (file_path, extra) => tool('Edit', { file_path, old_string: 'a', new_string: 'b' }, extra);
+const TRIVIAL = bash('llm-orchestrator run start --trivial "one-line fix"');
+
+test('the start nudge presents trivial as the narrow exception', () => {
+  assert.match(NUDGE, /only for a one-line change such as a typo or a version bump/);
+});
+
+test('a trivial run that edits a second file gets one overreach nudge', () => {
+  const { outputs, session } = run([claude('UserPromptSubmit'), TRIVIAL, edit('/p/src/a.mjs'), edit('/p/src/a.mjs'), edit('/p/src/b.mjs'), edit('/p/src/c.mjs')]);
+  assert.deepEqual(outputs.map((output) => output?.kind ?? null), [null, null, null, null, 'overreach', null]);
+  assert.match(outputs[4].additionalContext, /declared trivial, but it now touches 2 files/);
+  assert.ok(session.run.edited_files.every((entry) => /^[0-9a-f]{12}$/.test(entry)), 'only hashes of paths, never paths');
+});
+
+test('a trivial run that adds or edits a test gets the overreach nudge at once', () => {
+  for (const testFile of ['/p/test/avg.test.mjs', '/p/src/__tests__/x.js', '/p/spec/y_spec.rb', '/p/tests/test_z.py']) {
+    const { outputs } = run([claude('UserPromptSubmit'), TRIVIAL, tool('Write', { file_path: testFile, content: 'x' })]);
+    assert.equal(outputs[2]?.kind, 'overreach', testFile);
+  }
+});
+
+test('Codex apply_patch counts every file in the patch', () => {
+  const patch = '*** Begin Patch\n*** Update File: src/a.mjs\n@@\n-x\n+y\n*** Add File: src/b.mjs\n+z\n*** End Patch';
+  const { outputs } = run([claude('UserPromptSubmit'), TRIVIAL, tool('apply_patch', { command: patch })]);
+  assert.equal(outputs[2]?.kind, 'overreach');
+});
+
+test('a typed run never gets the overreach nudge', () => {
+  const { outputs } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE --shards 1'), edit('/p/a.mjs'), edit('/p/b.mjs'), edit('/p/test/a.test.mjs')]);
+  assert.ok(outputs.every((output) => output === null));
+});
+
+test('Stop closes a trivial run at the end of the turn, records overreach, and emits nothing', () => {
+  const { outputs, history, session } = run([claude('UserPromptSubmit'), TRIVIAL, edit('/p/a.mjs'), edit('/p/b.mjs'), claude('Stop')]);
+  assert.equal(outputs[4], null);
+  assert.equal(session.run, null);
+  assert.equal(history.length, 1);
+  assert.equal(history[0].closed_by, 'turn_end');
+  assert.equal(history[0].overreach, true);
+});
+
+test('Stop leaves a typed run open across turns', () => {
+  const { session, history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type BUG_FIX'), claude('Stop')]);
+  assert.equal(session.run.task_type, 'BUG_FIX');
+  assert.equal(history.length, 0);
+});
+
+test('the audit counts trivial overreach', () => {
+  const summary = adherenceSummary([
+    { task_type: null, trivial: true, overreach: true, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0, inline_reason: null },
+    { task_type: null, trivial: true, overreach: false, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0, inline_reason: null },
+  ]);
+  assert.equal(summary.trivial_overreach, 1);
 });

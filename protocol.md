@@ -43,7 +43,10 @@ are still dispatched — see "A shard ends where state ends" in [dispatch](polic
 
 **Trivial tasks.** A one-line, obviously scoped change (a typo, a version bump) may skip the full
 flow, but only by declaring it: `llm-orchestrator run start --trivial "<reason>"`. The
-declaration and its reason are recorded; an undeclared skip is recorded as a skipped flow.
+declaration and its reason are recorded; an undeclared skip is recorded as a skipped flow. A bug
+fix that needs a regression test, or any change across two or more files, is **not** trivial — it
+is a typed run. A trivial run that grows past that line gets one reminder to reopen it as a typed
+run, and the audit counts it as `trivial_overreach`. A trivial run lasts one turn.
 
 ```json
 {

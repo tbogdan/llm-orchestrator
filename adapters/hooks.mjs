@@ -11,7 +11,7 @@ import { relative, isAbsolute } from 'node:path';
 /** Marks the hook entries this package owns inside a user's hooks JSON. */
 export const FLOW_MARKER = 'orchestrate-core:flow';
 
-export const FLOW_EVENTS = ['UserPromptSubmit', 'PreToolUse', 'SubagentStart'];
+export const FLOW_EVENTS = ['UserPromptSubmit', 'PreToolUse', 'SubagentStart', 'Stop'];
 
 /** Spell the runtime path through $HOME when it lives there, so committed settings stay portable. */
 export function runtimeCliPath(runtimeRoot) {
@@ -164,6 +164,8 @@ export const OrchestrateFlow = async ({ directory }) => {
           parentOf.set(info.id, info.parentID);
           gate({ hook_event_name: "SubagentStart", session_id: info.parentID, agent_id: info.id });
         }
+        const idle = event?.properties?.sessionID;
+        if (event?.type === "session.idle" && idle && !parentOf.has(idle)) gate({ hook_event_name: "Stop", session_id: idle });
       } catch {}
     },
     "chat.message": async (input) => {

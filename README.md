@@ -364,6 +364,10 @@ more instructions:
   `flow.adherence`: runs, trivial declarations, tasks that skipped the flow, runs started outside
   it, runs opened without a PlanShard count, runs that planned several shards but started no
   subagents, and runs still open.
+- Trivial is the narrow exception — a one-line change such as a typo or a version bump. A run
+  declared trivial that then edits a second file or touches tests gets one reminder to reopen it as
+  a typed run, and counts as `trivial_overreach` in the audit. Trivial runs close at the end of the
+  turn (`Stop` hook), so single-prompt sessions still reach the history.
 - A run opened with two or more shards whose main thread keeps doing the work — six work calls, no
   subagent started — gets one more sentence: dispatch the independent shards (searching for the
   Agent tool if it is deferred), or declare the chain inline with
