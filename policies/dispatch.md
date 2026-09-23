@@ -294,12 +294,18 @@ Everything around that chain is still sharded:
 - Independent reads are never inline: log, metric and database queries, code search, config
   lookups. An SSH query that only reads is a stateless command, not a session — five of them are
   five W-tier evidence shards, not one inline chain.
+- Size the fan-out to the evidence, not to the task type. **Live or large sources** — anything
+  behind `ssh`, a remote database, a cluster or cloud CLI, an HTTP API, or logs too long to read
+  whole — are where parallel W-tier collectors pay, and where the incident/investigation/research
+  minimums apply. A handful of small local files is read faster inline than dispatched; plan it as
+  one shard and do not pad the fan-out to look thorough.
 - "Cheaper inline" is not a reason. The main thread runs at the flow's highest tier; the same reads
   on a W-tier subagent cost less per token and keep the orchestrator's context for synthesis.
 - A tool that is not visible is not absent. On Claude Code the Agent tool can be deferred — search
   for it (`tool.discovery`) before concluding dispatch is unavailable.
 - Declare the inline chain when opening the run: `run start --type <T> --shards <n> --inline
-  "stateful:<what state>"`. Undeclared, a planned multi-shard run whose main thread keeps working
+  "stateful:<what state>"`. The reason must name the live state; `run start` rejects any other
+  reason, and an `--inline` declared only after a dispatch reminder is recorded as retroactive. Undeclared, a planned multi-shard run whose main thread keeps working
   with no subagent started gets one reminder from the flow hooks, and the audit counts it.
 - Name the real seam you will split at, e.g. iOS simulator vs Android emulator: independent devices
   with independent state are parallel shards even when each one is inline inside.

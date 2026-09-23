@@ -7,7 +7,7 @@
  * the project ledger; the command itself only validates and acknowledges, so it is
  * safe to call with or without the hooks installed.
  */
-import { parseRunArgs, TASK_TYPES } from '../lib/flow-gate.mjs';
+import { INLINE_REASON, parseRunArgs, TASK_TYPES } from '../lib/flow-gate.mjs';
 
 const USAGE = `Usage: llm-orchestrator run start --type <${TASK_TYPES.join('|')}> [--shards N] [--inline "stateful:<what>"]
        llm-orchestrator run start --trivial "<reason>"
@@ -18,7 +18,11 @@ if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
   process.stdout.write(`${USAGE}\n`);
 } else {
   const parsed = parseRunArgs(args);
-  if (!parsed) {
+  const inlineAt = args.indexOf('--inline');
+  if (!parsed && inlineAt !== -1 && !INLINE_REASON.test(args[inlineAt + 1] ?? '')) {
+    process.stderr.write('--inline must name the live state a subagent cannot inherit, as "stateful:<what state>" (a browser session mid-flow, an interactive shell). Independent reads are never inline — dispatch them.\n');
+    process.exitCode = 1;
+  } else if (!parsed) {
     process.stderr.write(`${USAGE}\n`);
     process.exitCode = 1;
   } else {

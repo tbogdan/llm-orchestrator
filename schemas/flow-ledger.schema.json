@@ -8,7 +8,7 @@
     "run": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged", "subagent_ids", "role_dispatches", "generic_dispatches", "dispatch_nudges", "inline_after_nudge"],
+      "required": ["task_id", "task_type", "trivial", "reason", "opened_at", "planned_shards", "subagents_started", "started_outside_flow", "inline_reason", "main_work_calls", "dispatch_nudged", "edited_files", "touched_tests", "overreach_nudged", "subagent_ids", "role_dispatches", "generic_dispatches", "dispatch_nudges", "inline_after_nudge", "live_calls"],
       "properties": {
         "task_id": { "type": "string", "minLength": 1 },
         "task_type": { "type": ["string", "null"], "enum": ["INCIDENT", "FEATURE", "BUG_FIX", "REFACTOR", "INVESTIGATION", "DEPLOY", "CONFIG", "REVIEW", "RESEARCH", null] },
@@ -18,7 +18,7 @@
         "planned_shards": { "type": ["integer", "null"], "minimum": 1 },
         "subagents_started": { "type": "integer", "minimum": 0 },
         "started_outside_flow": { "type": "boolean" },
-        "inline_reason": { "type": ["string", "null"], "description": "Why the shards stay inline, e.g. stateful:browser — a live state no subagent can inherit." },
+        "inline_reason": { "type": ["string", "null"], "pattern": "^stateful:\\s*\\S", "description": "Why the shards stay inline, e.g. stateful:browser — a live state no subagent can inherit." },
         "main_work_calls": { "type": "integer", "minimum": 0 },
         "dispatch_nudged": { "type": "boolean" },
         "edited_files": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{12}$" }, "description": "Short hashes of edited paths — never the paths themselves." },
@@ -28,7 +28,8 @@
         "role_dispatches": { "type": "integer", "minimum": 0, "description": "Subagents started as one of the orchestrator's roles." },
         "generic_dispatches": { "type": "integer", "minimum": 0, "description": "Subagents started as a generic agent type (general-purpose, Explore, …)." },
         "dispatch_nudges": { "type": "integer", "minimum": 0, "maximum": 2, "description": "Dispatch reminders sent: one, or two for evidence flows whose first was ignored." },
-        "inline_after_nudge": { "type": "boolean", "description": "This run replaced one that had already received a dispatch reminder, and declared --inline: a retroactive justification." }
+        "inline_after_nudge": { "type": "boolean", "description": "This run replaced one that had already received a dispatch reminder, and declared --inline: a retroactive justification." },
+        "live_calls": { "type": "integer", "minimum": 0, "description": "Main-thread calls that read a live source (ssh, remote databases, cluster/cloud CLIs, HTTP clients)." }
       }
     },
     "session": {
@@ -50,7 +51,7 @@
     "historyLine": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "inline_reason", "dispatch_nudged", "overreach", "inline_after_nudge", "role_dispatches", "generic_dispatches", "closed_by"],
+      "required": ["session", "task_id", "task_type", "trivial", "reason", "opened_at", "closed_at", "duration_s", "planned_shards", "subagents_started", "started_outside_flow", "skipped_flow", "inline_reason", "dispatch_nudged", "overreach", "inline_after_nudge", "live_calls", "role_dispatches", "generic_dispatches", "closed_by"],
       "properties": {
         "session": { "type": "string", "minLength": 1 },
         "task_id": { "type": ["string", "null"] },
@@ -68,6 +69,7 @@
         "dispatch_nudged": { "type": "boolean" },
         "overreach": { "type": "boolean", "description": "A trivial run that edited two or more files or its tests." },
         "inline_after_nudge": { "type": "boolean" },
+        "live_calls": { "type": "integer", "minimum": 0 },
         "role_dispatches": { "type": "integer", "minimum": 0 },
         "generic_dispatches": { "type": "integer", "minimum": 0 },
         "closed_by": { "enum": ["run_close", "next_prompt", "succession", "turn_end", "session_end"] }

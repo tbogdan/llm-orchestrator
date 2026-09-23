@@ -127,7 +127,7 @@ test('history lines carry ids, types, counts and times only', () => {
   const { history } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type FEATURE'), bash('secret-tool --token abc123'), bash('llm-orchestrator run close')]);
   const text = JSON.stringify(history);
   assert.ok(!text.includes('abc123') && !text.includes('secret-tool'), 'no tool input may reach the ledger');
-  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'generic_dispatches', 'inline_after_nudge', 'opened_at', 'overreach', 'planned_shards', 'reason', 'role_dispatches', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
+  assert.deepEqual(Object.keys(history[0]).sort(), ['closed_at', 'closed_by', 'dispatch_nudged', 'duration_s', 'inline_reason', 'generic_dispatches', 'inline_after_nudge', 'live_calls', 'opened_at', 'overreach', 'planned_shards', 'reason', 'role_dispatches', 'session', 'skipped_flow', 'started_outside_flow', 'subagents_started', 'task_id', 'task_type', 'trivial'].sort());
 });
 
 // ------------------------------------------------------------------ harness payloads
@@ -299,11 +299,11 @@ test('subagent tool calls and instruction reads do not count toward the dispatch
 
 test('the audit counts inline declarations and evidence runs below the fan-out minimum', () => {
   const summary = adherenceSummary([
-    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
-    { task_type: 'INVESTIGATION', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0, inline_reason: null },
-    { task_type: 'RESEARCH', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: 'stateful:ssh session' },
-    { task_type: 'BUG_FIX', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
-    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 3, subagents_started: 3, inline_reason: null },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null, live_calls: 5 },
+    { task_type: 'INVESTIGATION', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: null, subagents_started: 0, inline_reason: null, live_calls: 5 },
+    { task_type: 'RESEARCH', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: 'stateful:ssh session', live_calls: 5 },
+    { task_type: 'BUG_FIX', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null, live_calls: 5 },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, started_outside_flow: false, planned_shards: 3, subagents_started: 3, inline_reason: null, live_calls: 5 },
   ]);
   assert.equal(summary.inline_declared, 1);
   assert.equal(summary.below_fan_out, 2, 'INCIDENT@1 and INVESTIGATION@null; the declared-inline RESEARCH run is excused');
@@ -433,8 +433,8 @@ test('SessionEnd closes whatever run is still open, typed or trivial', () => {
 
 test('below_fan_out does not flag an evidence run that did dispatch two or more subagents', () => {
   const summary = adherenceSummary([
-    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 4, inline_reason: null },
-    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 4, inline_reason: null, live_calls: 5 },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null, live_calls: 5 },
   ]);
   assert.equal(summary.below_fan_out, 1);
 });
@@ -529,4 +529,58 @@ test('--inline declared after a dispatch reminder is recorded as retroactive', (
   const upfront = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 2 --inline "stateful:ssh session"'), bash('llm-orchestrator run close')]);
   assert.equal(upfront.history[0].inline_after_nudge, false);
   assert.equal(adherenceSummary(history).inline_after_nudge, 1);
+});
+
+// ------------------------------------------------------------------ A: trivial is not an investigation
+test('a trivial run that keeps working past eight calls gets the overreach reminder, even read-only', () => {
+  const reads = Array.from({ length: 10 }, (_, index) => tool('Read', { file_path: `/p/logs/${index}.log` }, { tool_use_id: `r${index}` }));
+  const { outputs, history } = run([claude('UserPromptSubmit'), TRIVIAL, ...reads, claude('Stop')]);
+  const at = outputs.findIndex((output) => output?.kind === 'overreach');
+  assert.equal(at - 1, 9, 'fires on the ninth work call under a trivial run');
+  assert.match(outputs[at].additionalContext, /not an investigation/);
+  assert.equal(history[0].overreach, true);
+});
+
+// ------------------------------------------------------------------ B: --inline must name live state
+test('--inline without a stateful: reason is not a valid run', async () => {
+  const { parseRunArgs } = await import('../lib/flow-gate.mjs');
+  assert.equal(parseRunArgs(['start', '--type', 'INCIDENT', '--inline', 'small bounded evidence review']), null);
+  assert.equal(parseRunArgs(['start', '--type', 'INCIDENT', '--inline', 'stateful:']), null, 'the state must be named');
+  assert.equal(parseRunArgs(['start', '--type', 'INCIDENT', '--inline', 'stateful:browser checkout session']).inline, 'stateful:browser checkout session');
+  const { session } = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INCIDENT --shards 2 --inline "no change requested"')]);
+  assert.equal(session.run, null, 'an invalid --inline opens no run, so the steering stays on');
+});
+
+test('the run CLI rejects an --inline reason that names no state, with a pointed message', () => {
+  const result = spawnSync(process.execPath, [CLI, 'run', 'start', '--type', 'INCIDENT', '--inline', 'small review'], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /--inline must name the live state/);
+});
+
+// ------------------------------------------------------------------ C: evidence size — live sources
+const live = (n) => Array.from({ length: n }, (_, index) => bash(`ssh prod-api "tail -n 200 /var/log/app.log | grep -c ERROR${index}"`));
+const local = (n) => Array.from({ length: n }, (_, index) => tool('Read', { file_path: `/p/logs/${index}.log` }));
+
+test('in evidence flows the follow-up reminder is for live sources only', () => {
+  const localOnly = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INVESTIGATION --shards 2'), ...local(12)]);
+  assert.deepEqual(localOnly.outputs.map((o) => o?.kind).filter(Boolean), ['dispatch'], 'small local evidence: one reminder, no follow-up');
+  const liveRun = run([claude('UserPromptSubmit'), bash('llm-orchestrator run start --type INVESTIGATION --shards 2'), ...live(12)]);
+  assert.deepEqual(liveRun.outputs.map((o) => o?.kind).filter(Boolean), ['dispatch', 'dispatch_followup']);
+  assert.equal(liveRun.session.run.live_calls, 12);
+});
+
+test('below_fan_out counts only evidence runs that touched live sources', () => {
+  const summary = adherenceSummary([
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null, live_calls: 0 },
+    { task_type: 'INCIDENT', trivial: false, skipped_flow: false, planned_shards: 1, subagents_started: 0, inline_reason: null, live_calls: 7 },
+  ]);
+  assert.equal(summary.below_fan_out, 1);
+});
+
+test('live sources are recognised: ssh, remote databases, cluster and cloud CLIs, HTTP clients', async () => {
+  const { isLiveSource } = await import('../lib/flow-gate.mjs');
+  for (const command of ['ssh prod "uptime"', 'rtk ssh db1 ls', 'psql -h prod -c "select 1"', 'mysql -h x', 'kubectl logs api-7f', 'docker exec api cat /log', 'aws logs tail /api', 'gcloud logging read', 'curl -s https://api.example.com/health', 'redis-cli -h cache info']) {
+    assert.ok(isLiveSource(command), command);
+  }
+  for (const command of ['cat logs/api.log', 'grep ERROR logs/*.log', 'node --test', 'git log']) assert.ok(!isLiveSource(command), command);
 });
