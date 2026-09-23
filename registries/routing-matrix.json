@@ -14,7 +14,8 @@
     "S": {
       "name": "standard",
       "responsibility": "Default software-engineering model: normal implementation, frontend/backend, moderate debugging, tests, reasonable multi-file refactors, codebase analysis, tool use.",
-      "incumbents": {"claude": "claude-sonnet-5", "codex": "gpt-5.6-terra"}
+      "incumbents": {"claude": "claude-sonnet-5", "codex": "gpt-6-sol"},
+      "fallbacks": {"codex": ["gpt-5.6-terra"]}
     },
     "X": {
       "name": "senior",
@@ -88,15 +89,15 @@
     },
     "S T1": {
       "claude": {"model": "claude-sonnet-5", "effort": "low"},
-      "codex": {"model": "gpt-5.6-terra", "effort": "low"}
+      "codex": {"model": "gpt-6-sol", "effort": "low"}
     },
     "S T2": {
       "claude": {"model": "claude-sonnet-5", "effort": "medium"},
-      "codex": {"model": "gpt-5.6-terra", "effort": "medium"}
+      "codex": {"model": "gpt-6-sol", "effort": "low"}
     },
     "S T3": {
       "claude": {"model": "claude-sonnet-5", "effort": "high"},
-      "codex": {"model": "gpt-5.6-terra", "effort": "high"}
+      "codex": {"model": "gpt-6-sol", "effort": "medium"}
     },
     "X T2": {
       "claude": {"model": "claude-opus-5-5", "effort": "medium"},
@@ -293,8 +294,7 @@
       {"model": "gpt-6-luna", "effort": "medium"},
       {"model": "gpt-6-luna", "effort": "xhigh"},
       {"model": "gpt-6-luna", "effort": "max"},
-      {"model": "gpt-5.6-terra", "effort": "medium"},
-      {"model": "gpt-5.6-terra", "effort": "high"},
+      {"model": "gpt-6-sol", "effort": "low"},
       {"model": "gpt-6-sol", "effort": "medium"},
       {"model": "gpt-6-sol", "effort": "high"},
       {"model": "gpt-6-sol", "effort": "high", "independent_second_reviewer": true},

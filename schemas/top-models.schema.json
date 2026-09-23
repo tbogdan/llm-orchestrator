@@ -106,6 +106,11 @@
               "always_on": { "type": ["boolean", "null"] },
               "default_for_tier": { "type": ["string", "null"] },
               "note": { "type": "string" },
+              "tier_effort": {
+                "type": "object",
+                "description": "Per seat below the model's home tier: thinking level → effort to run there, so the model is score-matched to that tier instead of over-provisioned.",
+                "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } }
+              },
               "unmeasured_levels": {
                 "type": "array",
                 "items": { "type": "string" },

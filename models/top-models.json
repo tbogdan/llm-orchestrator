@@ -366,6 +366,7 @@
       "admission": "incumbent",
       "tier": "X",
       "eligible_tiers": [
+        "S",
         "X"
       ],
       "supersedes": "gpt-5-6-sol",
@@ -388,7 +389,10 @@
         ],
         "always_on": false,
         "default_for_tier": "high",
-        "note": "Same Codex policy as GPT-5.6 Sol: ceiling `high`; T4 is `high` plus an independent second Sol `high` reviewer with no shared history. The API also accepts `none`, which is not measured and never routed."
+        "note": "Same Codex policy as GPT-5.6 Sol: ceiling `high`; T4 is `high` plus an independent second Sol `high` reviewer with no shared history. The API also accepts `none`, which is not measured and never routed. On the S seat it runs one notch down (tier_effort), score-matched to Terra.",
+        "tier_effort": {
+          "S": {"T1": "low", "T2": "low", "T3": "medium"}
+        }
       },
       "price": {
         "input_usd_per_mtok": 2,
@@ -463,7 +467,7 @@
       },
       "notes": [
         "Successor to GPT-5.6 Sol on the Codex X seat at half the per-token price ($2/$10 vs $4/$20, permanent pricing). It is cheaper per completed task at every measured effort and scores equal or higher at each (high 43 @ $0.37 vs 42 @ $0.81); GPT-5.6 Sol stays routable as its fallback.",
-        "Its `medium` (40 @ $0.25) also dominates GPT-5.6 Terra `xhigh` (38 @ $0.63); the S seat stays Terra because an incumbent's tier is its ladder seat, not a score — see the routing note."
+        "Also holds the Codex S seat: at every S pair it is cheaper and stronger than GPT-5.6 Terra (S T2: `low` 34 @ $0.13 vs Terra `medium` 30 @ $0.18; S T3: `medium` 40 @ $0.25 vs Terra `high` 34 @ $0.34). Terra stays routable as the S fallback."
       ],
       "sources": [
         "https://artificialanalysis.ai/models/gpt-6-sol",

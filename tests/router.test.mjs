@@ -349,13 +349,17 @@ test('cheapestThinkingFor buys the cheapest thinking within the score budget', (
   assert.ok(loose.est_usd_per_task < w.est_usd_per_task);
 
   const incumbentOnly = cheapestThinkingFor('S T3');
-  assert.equal(incumbentOnly.model, 'gpt-5-6-terra');
+  assert.equal(incumbentOnly.model, 'gpt-6-sol', 'GPT-6 Sol holds the Codex S seat at `medium`');
+  assert.equal(incumbentOnly.effort, 'medium');
   assert.equal(incumbentOnly.admission, 'incumbent');
 
   const withCandidates = cheapestThinkingFor('S T3', { includeCandidates: true });
   assert.equal(withCandidates.model, 'glm-5-3-flash');
   assert.equal(withCandidates.admission, 'candidate');
-  assert.ok(withCandidates.est_usd_per_task < incumbentOnly.est_usd_per_task, 'the candidate must actually be cheaper than the incumbent it displaces');
+  // Same $0.25 per task as Sol `medium`, 42 vs 40: a candidate may displace the
+  // incumbent only when it is no more expensive and strictly better.
+  assert.ok(withCandidates.est_usd_per_task <= incumbentOnly.est_usd_per_task);
+  assert.ok(withCandidates.score > incumbentOnly.score, 'at equal cost the candidate must score higher');
   assert.match(explain(withCandidates), /Cheapest thinking for S T3/);
 
   assert.equal(cheapestThinkingFor('X T4', { includeCandidates: true }).admission, 'incumbent', 'no candidate at a T4 seat, cheap or not');
@@ -490,4 +494,24 @@ test('GPT-6 Sol and Luna take the Codex X and W seats; GPT-5.6 stays the fallbac
   assert.equal(w[0].model, 'gpt-6-luna');
   const inventory = { models: [{ id: 'gpt-5.6-sol', efforts: ['high'], availability: 'exposed' }] };
   assert.equal(admittedModels(rankModels({ pair: 'X T3', provider: 'openai', inventory }))[0].model, 'gpt-5-6-sol', 'an inventory without GPT-6 Sol falls back');
+});
+
+test('GPT-6 Sol also holds the Codex S seat, one effort notch down; Terra is the S fallback', () => {
+  // On S, Sol runs one notch below the generic mapping so it is score-matched to
+  // Terra, not over-provisioned: at every S pair it is both cheaper and stronger.
+  const expected = { 'S T1': ['low', 0.13, 34], 'S T2': ['low', 0.13, 34], 'S T3': ['medium', 0.25, 40] };
+  for (const [pair, [effort, usd, score]] of Object.entries(expected)) {
+    const rows = admittedModels(rankModels({ pair, provider: 'openai' }));
+    assert.equal(rows[0].model, 'gpt-6-sol', pair);
+    assert.equal(rows[0].effort, effort, pair);
+    assert.equal(rows[0].est_usd_per_task, usd, pair);
+    assert.equal(rows[0].score, score, pair);
+    const terra = rows.find((row) => row.model === 'gpt-5-6-terra');
+    assert.ok(terra, `${pair}: Terra stays routable as the S fallback`);
+    assert.ok(terra.est_usd_per_task > usd && terra.score <= score, `${pair}: Sol must dominate Terra, not just undercut it`);
+  }
+  const inventory = { models: [{ id: 'gpt-5.6-terra', efforts: ['low', 'medium', 'high'], availability: 'exposed' }] };
+  assert.equal(admittedModels(rankModels({ pair: 'S T2', provider: 'openai', inventory }))[0].model, 'gpt-5-6-terra');
+  // Its home seat is untouched: X T3 is still Sol `high`.
+  assert.equal(admittedModels(rankModels({ pair: 'X T3', provider: 'openai' }))[0].effort, 'high');
 });

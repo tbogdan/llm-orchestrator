@@ -456,7 +456,7 @@ Incumbents hold a seat on a provider ladder. Candidates are measured but unseate
 |---|---|---|---|---|---|---|
 | GPT-6 Luna | openai | codex | incumbent | W | low, medium, high, xhigh, max (reasoning_effort) | $0.1 / $0.5 |
 | GPT-5.6 Luna | openai | codex | incumbent (fallback for GPT-6 Luna) | W | low, medium, high, xhigh, max (reasoning_effort) | $0.2 / $1.2 |
-| GPT-5.6 Terra | openai | codex | incumbent | S | low, medium, high, xhigh, max (reasoning_effort) | $2 / $12 |
+| GPT-5.6 Terra | openai | codex | incumbent (S fallback; GPT-6 Sol holds the S seat one notch down) | S | low, medium, high, xhigh, max (reasoning_effort) | $2 / $12 |
 | GPT-6 Sol | openai | codex | incumbent | X | low, medium, high, xhigh, max (reasoning_effort) | $2 / $10 |
 | GPT-5.6 Sol | openai | codex | incumbent (fallback for GPT-6 Sol) | X | low, medium, high, xhigh, max (reasoning_effort) | $4 / $20 |
 | GPT-6 Astra | openai | codex | incumbent | F | low, medium, high, xhigh, max (reasoning_effort) | $10 / $50 |
